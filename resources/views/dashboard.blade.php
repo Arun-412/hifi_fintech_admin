@@ -1,4 +1,4 @@
-
+<a href="services"><button type="button">Services</button></a>
 <form action="logout" method="post">
     @csrf
     <h2>Welcome to HIFI FINTECH</h2>

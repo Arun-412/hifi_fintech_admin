@@ -41,7 +41,7 @@
                     <input type="hidden" name="mobile_number" value="{{session('otp')}}">
           @else <input type="hidden" name="mobile_number" value="{{session('user')}}">
           @endif
-                  <input id='input1' required type='password' maxLength="1" />
+                  <input id='input1' autofocus required type='password' maxLength="1" />
                   <input id='input2' required type='password' maxLength="1" />
                   <input id='input3' required type='password' maxLength="1" />
                   <input id='input4' required type='password' maxLength="1" />
