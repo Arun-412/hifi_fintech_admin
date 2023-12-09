@@ -10,12 +10,12 @@ Route::middleware(['guest'])->group(function () {
     // Route::get('/signup', function () { return view('auth.Register'); });
     Route::post('/loggedin', [UserController::class, 'Login'])->name('loggedin');
     // Route::post('/register', [UserController::class, 'Register'])->name('Register');
-    // Route::post('/signin', [UserController::class, 'Signin'])->name('Signin');
+    Route::post('/signin', [UserController::class, 'Signin'])->name('Signin');
 });
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () { return view('dashboard'); });
     Route::get('/services', function () { return view('services.services'); });
-    Route::post('/logout', [UserController::class, 'Logout'])->name('logout');
+    Route::get('/logout', [UserController::class, 'Logout'])->name('logout');
 });
 

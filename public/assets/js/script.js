@@ -1,4 +1,5 @@
 $(document).ready(function(){
+    $('.loader-section').fadeOut('slow');
     $('#show_password').hide();
     $('#c_show_password').hide();
     $('#hide_password').click(function(){
