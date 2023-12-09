@@ -14,8 +14,18 @@ Route::middleware(['guest'])->group(function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () { return view('dashboard'); });
+    Route::get('/dashboard', function () { return view('dashboard'); })->name('dashboard');
+    Route::get('/distributer', function () { return view('user_management.distributer'); })->name('distributer');
+    Route::get('/report', function () { return view('report'); })->name('report');
     Route::get('/services', function () { return view('services.services'); });
     Route::get('/logout', [UserController::class, 'Logout'])->name('logout');
+
+    Route::get('/profile', function () { return view('profile'); })->name('profile');
+    Route::get('/settings', function () { return view('settings'); })->name('settings');
+    Route::get('/support', function () { return view('support'); })->name('support');
+
+    Route::group(['prefix' => 'print'], function () {   
+        Route::get('/transaction', function () { return view('print.transaction'); })->name('print_transaction');
+    }); 
 });
 

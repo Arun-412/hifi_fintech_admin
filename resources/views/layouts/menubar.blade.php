@@ -9,13 +9,17 @@
             <div class="collapse navbar-collapse" id="navbarScroll">
                 <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="">Dashboard</a>
+                        <a class="nav-link active" aria-current="page" href="{{route('dashboard')}}">Dashboard</a>
+                    </li>
+                    <li class="nav-item hoverd">
+                        <a class="nav-link">
+                            <span class="lan-7">User Management</span></a>
+                        <ul class="submenu">
+                            <li><a href="{{route('distributer')}}">Distributer</a></li>
+                        </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="">Distributer</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="">Report</a>
+                        <a class="nav-link" href="{{route('report')}}">Report</a>
                     </li>
                 </ul>
                 <div class="d-flex profile">
@@ -39,13 +43,13 @@
                             </li>
                             <hr>
                             <li>
-                                <a class="dropdown-item" href="">Profile</a>
+                                <a class="dropdown-item" href="{{route('profile')}}">Profile</a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="">Support</a>
+                                <a class="dropdown-item" href="{{route('support')}}">Support</a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="">Settings</a>
+                                <a class="dropdown-item" href="{{route('settings')}}">Settings</a>
                             </li>
                             <hr>
                             <li>
