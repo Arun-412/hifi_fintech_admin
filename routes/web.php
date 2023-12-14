@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ServicesController;
 
 Route::get('/verify', function () { return view('auth.OTP'); });
 
@@ -17,12 +18,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () { return view('dashboard'); })->name('dashboard');
     Route::get('/distributer', function () { return view('user_management.distributer'); })->name('distributer');
     Route::get('/report', function () { return view('report'); })->name('report');
-    Route::get('/services', function () { return view('services.services'); });
     Route::get('/logout', [UserController::class, 'Logout'])->name('logout');
 
     Route::get('/profile', function () { return view('profile'); })->name('profile');
     Route::get('/settings', function () { return view('settings'); })->name('settings');
     Route::get('/support', function () { return view('support'); })->name('support');
+
+    Route::get('/services', [ServicesController::class, 'services'])->name('services');
+
+    Route::group(['prefix' => 'services'], function () {  
+        Route::get('/payout', function () { return view('services.payout'); })->name('payout'); 
+    }); 
 
     Route::group(['prefix' => 'print'], function () {   
         Route::get('/transaction', function () { return view('print.transaction'); })->name('print_transaction');

@@ -12,8 +12,15 @@
                         <a class="nav-link active" aria-current="page" href="{{route('dashboard')}}">Dashboard</a>
                     </li>
                     <li class="nav-item hoverd">
+                        <a class="nav-link" href="{{route('services')}}">
+                            <span class="lan-7">Services</span></a>
+                        <ul class="submenu">
+                            <li><a href="{{route('payout')}}">payout</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item hoverd">
                         <a class="nav-link">
-                            <span class="lan-7">User Management</span></a>
+                            <span class="lan-7">Users</span></a>
                         <ul class="submenu">
                             <li><a href="{{route('distributer')}}">Distributer</a></li>
                         </ul>

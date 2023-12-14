@@ -95,4 +95,34 @@ $(document).ready(function(){
         },
     ]
 });
+$('#providers_list_table').DataTable({
+    dom:'Blfrtip',
+    
+    colReorder: true,
+    fixedHeader: {
+        header: true
+    }, 
+   
+    buttons: []
+});
+$('#services_list_table').DataTable({
+    dom:'Blfrtip',
+    
+    colReorder: true,
+    fixedHeader: {
+        header: true
+    }, 
+   
+    buttons: []
+});
+$('#payout_rules_table').DataTable({
+    dom:'Blfrtip',
+    
+    colReorder: true,
+    fixedHeader: {
+        header: true
+    }, 
+   
+    buttons: []
+});
 });
