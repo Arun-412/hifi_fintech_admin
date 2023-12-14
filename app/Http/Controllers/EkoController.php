@@ -137,6 +137,120 @@ class EkoController extends Controller
         return view('eko')->with('Get_Services',$Get_Services);
     }
 
+    public function Onboard_User() { //Completed
+        $d  = array (
+            "line"=> "Somanur Main Road","city"=>"Coimbatore","state"=>"Tamil Nadu","pincode"=>"641668"
+        );
+        $curl = curl_init();   
+        $encodedKey = base64_encode($this->Authenticator_Key);
+        $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+        $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+        $secret_key = base64_encode($signature); 
+        curl_setopt_array($curl, array(
+            CURLOPT_SSL_VERIFYHOST => env("SSL_VERIFY"),
+            CURLOPT_SSL_VERIFYPEER =>  env("SSL_VERIFY"),
+            CURLOPT_URL => $this->Onboarding_URL."user/onboard",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "PUT",
+            CURLOPT_POSTFIELDS => "initiator_id=".$this->Initiator_ID."&pan_number=CCAPA9739C&mobile=6383224535&first_name=ARUNMOZHI&last_name=NATARAJAN&email=arunmozhi52892@gmail.com&residence_address=".json_encode($d)."&dob=1998-12-04&shop_name=NAMV SOFTECH SOLUTIONS PRIVATE LIMITED",
+            CURLOPT_HTTPHEADER => array(
+              "Cache-Control: no-cache",
+              "Content-Type: application/x-www-form-urlencoded",
+              'developer_key: '.$this->Developer_Key,
+              'secret-key:'.$secret_key,
+              'secret-key-timestamp:'.$secret_key_timestamp
+            ),
+        ));
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        $Onboard_User = 'Something went wrong';
+        if ($err) {
+            $Onboard_User = "Error - ".$err;
+        }else{
+            $Onboard_User = "Success - ".$response;
+        }
+        curl_close($curl);
+        return view('eko')->with('Onboard_User',$Onboard_User);
+    }
+
+    public function Request_OTP() { //otp not received
+        $curl = curl_init();
+        $encodedKey = base64_encode($this->Authenticator_Key);
+        $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+        $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+        $secret_key = base64_encode($signature); 
+        curl_setopt_array($curl, array(
+            CURLOPT_SSL_VERIFYHOST => env("SSL_VERIFY"),
+            CURLOPT_SSL_VERIFYPEER => env("SSL_VERIFY"),
+            CURLOPT_URL =>  $this->Onboarding_URL."user/request/otp",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "PUT",
+            CURLOPT_POSTFIELDS => "initiator_id=".$this->Initiator_ID."&mobile=6383224535",
+            CURLOPT_HTTPHEADER => array(
+              "Cache-Control: no-cache",
+              "content-type: application/x-www-form-urlencoded",
+              'developer_key: '.$this->Developer_Key,
+              'secret-key:'.$secret_key,
+              'secret-key-timestamp:'.$secret_key_timestamp
+            ),
+        ));
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        $Request_OTP = 'Something went wrong';
+        if ($err) {
+            $Request_OTP = "Error - ".$err;
+        }else{
+            $Request_OTP = "Success - ".$response;
+        }
+        curl_close($curl);
+        return view('eko')->with('Request_OTP',$Request_OTP);
+    }
+
+    public function Verify_User_Mobile_Number() { //otp not received
+        $curl = curl_init();
+        $encodedKey = base64_encode($this->Authenticator_Key);
+        $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+        $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+        $secret_key = base64_encode($signature); 
+        curl_setopt_array($curl, array(
+            CURLOPT_SSL_VERIFYHOST => env("SSL_VERIFY"),
+            CURLOPT_SSL_VERIFYPEER => env("SSL_VERIFY"),
+            CURLOPT_URL => $this->Onboarding_URL."user/verify",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "PUT",
+            CURLOPT_POSTFIELDS => "initiator_id=".$this->Initiator_ID."&mobile=6383224535&otp=447",
+            CURLOPT_HTTPHEADER => array(
+              "Cache-Control: no-cache",
+              "content-type: application/x-www-form-urlencoded",
+              'developer_key: '.$this->Developer_Key,
+              'secret-key:'.$secret_key,
+              'secret-key-timestamp:'.$secret_key_timestamp
+            ),
+        ));
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        $Verify_User_Mobile_Number = 'Something went wrong';
+        if ($err) {
+            $Verify_User_Mobile_Number = "Error - ".$err;
+        }else{
+            $Verify_User_Mobile_Number = "Success - ".$response;
+        }
+        curl_close($curl);
+        return view('eko')->with('Verify_User_Mobile_Number',$Verify_User_Mobile_Number);
+    }
+
     public function Aadhar_Consent() {
         $curl = curl_init();
         $key = env("EKO_STAGING_KEY");
@@ -329,111 +443,6 @@ class EkoController extends Controller
         }
         curl_close($curl);
         return view('eko')->with('Generate_QR',$Generate_QR);
-    }
-
-    public function Onboard_User() {
-        $d  = array (
-            "line"=> "Main Road","city"=>"Coimbatore","state"=>"Tamil Nadu","pincode"=>"641668"
-        );
-        $curl = curl_init();    
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, env("SSL_VERIFY"));
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,  env("SSL_VERIFY"));
-        curl_setopt_array($curl, array(
-            CURLOPT_PORT => "25004",
-            CURLOPT_URL => "https://staging.eko.in:25004/ekoapi/v1/user/onboard",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "PUT",
-            CURLOPT_POSTFIELDS => "initiator_id=9962981729&pan_number=BFUPM3499K&mobile=9123354235&first_name=Tina&last_name=Chawla&email=a@gmail.com&residence_address=".json_encode($d)."&dob=1992-05-10&shop_name=Akanksha Stores",
-            CURLOPT_HTTPHEADER => array(
-              "Cache-Control: no-cache",
-              "Content-Type: application/x-www-form-urlencoded",
-              "developer_key: becbbce45f79c6f5109f848acd540567",
-              "secret-key: MC6dKW278tBef+AuqL/5rW2K3WgOegF0ZHLW/FriZQw=",
-              "secret-key-timestamp: 1516705204593"
-            ),
-        ));
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-        $Onboard_User = 'Something went wrong';
-        if ($err) {
-            $Onboard_User = "Error - ".$err;
-        }else{
-            $Onboard_User = "Success - ".$response;
-        }
-        curl_close($curl);
-        return view('eko')->with('Onboard_User',$Onboard_User);
-    }
-
-    public function Request_OTP() {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, env("SSL_VERIFY"));
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,  env("SSL_VERIFY"));
-        curl_setopt_array($curl, array(
-            CURLOPT_PORT => "25004",
-            CURLOPT_URL => "https://staging.eko.in:25004/ekoapi/v1/user/request/otp",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "PUT",
-            CURLOPT_POSTFIELDS => "initiator_id=9962981729&mobile=8646546454",
-            CURLOPT_HTTPHEADER => array(
-              "Cache-Control: no-cache",
-              "content-type: application/x-www-form-urlencoded",
-              "developer_key: becbbce45f79c6f5109f848acd540567",
-              "secret-key: MC6dKW278tBef+AuqL/5rW2K3WgOegF0ZHLW/FriZQw=",
-              "secret-key-timestamp: 1516705204593"
-            ),
-        ));
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-        $Request_OTP = 'Something went wrong';
-        if ($err) {
-            $Request_OTP = "Error - ".$err;
-        }else{
-            $Request_OTP = "Success - ".$response;
-        }
-        curl_close($curl);
-        return view('eko')->with('Request_OTP',$Request_OTP);
-    }
-
-    public function Verify_User_Mobile_Number() {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, env("SSL_VERIFY"));
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,  env("SSL_VERIFY"));
-        curl_setopt_array($curl, array(
-            CURLOPT_PORT => "25004",
-            CURLOPT_URL => "https://staging.eko.in:25004/ekoapi/v1/user/verify",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "PUT",
-            CURLOPT_POSTFIELDS => "initiator_id=9962981729&mobile=8646546454&otp=447",
-            CURLOPT_HTTPHEADER => array(
-              "Cache-Control: no-cache",
-              "content-type: application/x-www-form-urlencoded",
-              "developer_key: becbbce45f79c6f5109f848acd540567",
-              "secret-key: MC6dKW278tBef+AuqL/5rW2K3WgOegF0ZHLW/FriZQw=",
-              "secret-key-timestamp: 1516705204593"
-            ),
-        ));
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-        $Verify_User_Mobile_Number = 'Something went wrong';
-        if ($err) {
-            $Verify_User_Mobile_Number = "Error - ".$err;
-        }else{
-            $Verify_User_Mobile_Number = "Success - ".$response;
-        }
-        curl_close($curl);
-        return view('eko')->with('Verify_User_Mobile_Number',$Verify_User_Mobile_Number);
     }
 
     public function User_Services_Enquiry() {
