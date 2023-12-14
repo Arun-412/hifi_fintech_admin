@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ServicesController;
+use App\Http\Controllers\ChairController;
 
 Route::get('/verify', function () { return view('auth.OTP'); });
 
@@ -27,7 +28,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/services', [ServicesController::class, 'services'])->name('services');
 
     Route::group(['prefix' => 'services'], function () {  
-        Route::get('/payout', function () { return view('services.payout'); })->name('payout'); 
+        Route::group(['prefix' => 'payout'], function () {  
+            Route::group(['prefix' => 'eko'], function () {  
+                Route::get('/', function () { return view('services.payout'); })->name('payout_eko');
+                Route::get('/add_rule', [ChairController::class, 'add_rule'])->name('payout_eko_add_rule'); 
+            }); 
+        });  
     }); 
 
     Route::group(['prefix' => 'print'], function () {   

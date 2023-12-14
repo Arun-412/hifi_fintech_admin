@@ -15,7 +15,7 @@
                         <a class="nav-link" href="{{route('services')}}">
                             <span class="lan-7">Services</span></a>
                         <ul class="submenu">
-                            <li><a href="{{route('payout')}}">payout</a></li>
+                            <li><a href="{{route('payout_eko')}}">payout EKO</a></li>
                         </ul>
                     </li>
                     <li class="nav-item hoverd">
