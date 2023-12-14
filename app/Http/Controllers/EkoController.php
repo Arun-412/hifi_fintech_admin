@@ -8,25 +8,51 @@ use Illuminate\Http\Request;
 
 class EkoController extends Controller
 {
-    public function Pan_Verify() {
+    private $Base_URL;
+    private $Onboarding_URL;
+    private $Initiator_ID;
+    private $Developer_Key;
+    private $Authenticator_Key;
+    private $admin_code;
+    public function __construct() {
+        if(env("EKO_MODE") == "LIVE"){
+            $this->Onboarding_URL = env("EKO_ONBOARDING_PRODUCTION");
+            $this->Base_URL = env("EKO_BASE_URL_PRODUCTION");
+            $this->Initiator_ID = env("EKO_INITIATOR_ID_PRODUCTION");
+            $this->Developer_Key = env("EKO_DEVELOPER_KEY_PRODUCTION");
+            $this->Authenticator_Key = env("EKO_AUTHENTICATOR_KEY_PRODUCTION");
+            $this->admin_code = env("EKO_ADMIN_CODE_PRODUCTION");
+        }else{
+            $this->Onboarding_URL = env("EKO_ONBOARDING_STAGING");
+            $this->Base_URL = env("EKO_BASE_URL_STAGING");
+            $this->Initiator_ID = env("EKO_INITIATOR_ID_STAGING");
+            $this->Developer_Key = env("EKO_DEVELOPER_KEY_STAGING");
+            $this->Authenticator_Key = env("EKO_AUTHENTICATOR_KEY_STAGING");
+            $this->admin_code = env("EKO_ADMIN_CODE_STAGING");
+        }
+    }
+  
+    public function Activate_Service() { //Completed
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, env("SSL_VERIFY"));
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,  env("SSL_VERIFY"));
+        $encodedKey = base64_encode($this->Authenticator_Key);
+        $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+        $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+        $secret_key = base64_encode($signature);
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://staging.eko.in/ekoapi/v1/pan/verify',
+            CURLOPT_URL =>  $this->Onboarding_URL.'user/service/activate',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
             CURLOPT_TIMEOUT => 0,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => 'pan_number=VBLPZ6447L&purpose=1&initiator_id=9971771929&purpose_desc=onboarding',
+            CURLOPT_CUSTOMREQUEST => 'PUT',
+            CURLOPT_POSTFIELDS => 'service_code=4&initiator_id='.$this->Initiator_ID.'&user_code='.$this->admin_code,
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/x-www-form-urlencoded',
-                'developer_key: becbbce45f79c6f5109f848acd540567',
-                'secret-key: MC6dKW278tBef+AuqL/5rW2K3WgOegF0ZHLW/FriZQw=',
-                'secret-key-timestamp: 1516705204593'
+                'developer_key: '.$this->Developer_Key,
+                'secret-key:'.$secret_key,
+                'secret-key-timestamp:'.$secret_key_timestamp
             ),
         ));
         $response = curl_exec($curl);
@@ -39,6 +65,76 @@ class EkoController extends Controller
         }
         curl_close($curl);
         return view('eko')->with('Pan_Verify',$Pan_Verify);
+    }
+
+    public function Pan_Verify() { //Completed
+        $curl = curl_init();
+        $encodedKey = base64_encode($this->Authenticator_Key);
+        $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+        $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+        $secret_key = base64_encode($signature);
+        curl_setopt_array($curl, array(
+            CURLOPT_URL =>  $this->Onboarding_URL.'pan/verify',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => 'pan_number=CCAPA9739C&purpose=1&initiator_id='.$this->Initiator_ID.'&purpose_desc=onboarding',
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/x-www-form-urlencoded',
+                'developer_key: '.$this->Developer_Key,
+                'secret-key:'.$secret_key,
+                'secret-key-timestamp:'.$secret_key_timestamp
+            ),
+        ));
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        $Pan_Verify = 'Something went wrong';
+        if ($err) {
+            $Pan_Verify = "Error - ".$err;
+        }else{
+            $Pan_Verify = "Success - ".$response;
+        }
+        curl_close($curl);
+        return view('eko')->with('Pan_Verify',$Pan_Verify);
+    }
+
+    public function Get_Services() { //Completed
+        $curl = curl_init();
+        $encodedKey = base64_encode($this->Authenticator_Key);
+        $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+        $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+        $secret_key = base64_encode($signature);
+        curl_setopt_array($curl, array(
+            CURLOPT_SSL_VERIFYHOST => env("SSL_VERIFY"),
+            CURLOPT_SSL_VERIFYPEER =>  env("SSL_VERIFY"),
+            CURLOPT_URL => $this->Onboarding_URL."user/services?initiator_id=".$this->Initiator_ID,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => array(
+              "Cache-Control: no-cache",
+              'developer_key: '.$this->Developer_Key,
+              'secret-key:'.$secret_key,
+              'secret-key-timestamp:'.$secret_key_timestamp
+            ),
+        ));
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        $Get_Services = 'Something went wrong';
+        if ($err) {
+            $Get_Services = "Error - ".$err;
+        }else{
+            $Get_Services = "Success - ".$response;
+        }
+        curl_close($curl);
+        return view('eko')->with('Get_Services',$Get_Services);
     }
 
     public function Aadhar_Consent() {
@@ -80,11 +176,6 @@ class EkoController extends Controller
 
     public function Aadhaar_OTP() {
         $curl = curl_init();
-        $key = env("EKO_STAGING_KEY");
-        $encodedKey = base64_encode($key);
-        $secret_key_timestamp = (int)(round(microtime(true) * 1000));
-        $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
-        $secret_key = base64_encode($signature);
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, env("SSL_VERIFY"));
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,  env("SSL_VERIFY"));
         curl_setopt_array($curl, array(
@@ -275,38 +366,6 @@ class EkoController extends Controller
         }
         curl_close($curl);
         return view('eko')->with('Onboard_User',$Onboard_User);
-    }
-
-    public function Get_Services() {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, env("SSL_VERIFY"));
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,  env("SSL_VERIFY"));
-        curl_setopt_array($curl, array(
-            CURLOPT_PORT => "25004",
-            CURLOPT_URL => "https://staging.eko.in:25004/ekoapi/v1/user/services?initiator_id=9962981729",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "GET",
-            CURLOPT_HTTPHEADER => array(
-              "Cache-Control: no-cache",
-              "developer_key: becbbce45f79c6f5109f848acd540567",
-              "secret-key: MC6dKW278tBef+AuqL/5rW2K3WgOegF0ZHLW/FriZQw=",
-              "secret-key-timestamp: 1516705204593"
-            ),
-        ));
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-        $Get_Services = 'Something went wrong';
-        if ($err) {
-            $Get_Services = "Error - ".$err;
-        }else{
-            $Get_Services = "Success - ".$response;
-        }
-        curl_close($curl);
-        return view('eko')->with('Get_Services',$Get_Services);
     }
 
     public function Request_OTP() {
