@@ -251,6 +251,220 @@ class EkoController extends Controller
         return view('eko')->with('Verify_User_Mobile_Number',$Verify_User_Mobile_Number);
     }
 
+    public function User_Services_Enquiry() {
+        $curl = curl_init();
+        $encodedKey = base64_encode($this->Authenticator_Key);
+        $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+        $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+        $secret_key = base64_encode($signature); 
+        curl_setopt_array($curl, array(
+            CURLOPT_SSL_VERIFYHOST => env("SSL_VERIFY"),
+            CURLOPT_SSL_VERIFYPEER => env("SSL_VERIFY"),
+            CURLOPT_URL => $this->Onboarding_URL."user/services/user_code:34738002?initiator_id=".$this->Initiator_ID,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => array(
+              "Cache-Control: no-cache",
+              "content-type: application/x-www-form-urlencoded",
+              'developer_key: '.$this->Developer_Key,
+              'secret-key:'.$secret_key,
+              'secret-key-timestamp:'.$secret_key_timestamp
+            ),
+        ));
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        $User_Services_Enquiry = 'Something went wrong';
+        if ($err) {
+            $User_Services_Enquiry = "Error - ".$err;
+        }else{
+            $User_Services_Enquiry = "Success - ".$response;
+        }
+        curl_close($curl);
+        return view('eko')->with('User_Services_Enquiry',$User_Services_Enquiry);
+    }
+    
+    // public function Activate_Payout() { // mismatch request
+
+    //     $curl = curl_init();
+    //     $encodedKey = base64_encode($this->Authenticator_Key);
+    //     $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+    //     $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+    //     $secret_key = base64_encode($signature);
+
+    //     $target_url = $this->Onboarding_URL."user/service/activate";   
+
+    //     $fname1 = "C:\Users\Admin\Desktop\NAMV\Pan.jpeg";
+    //     $fname2 = "C:\Users\Admin\Desktop\NAMV\adhar_front";
+    //     $fname3 = "C:\Users\Admin\Desktop\NAMV\Aadhar_Back";
+        
+        
+    //     $cfile1 = new \CURLFile(realpath($fname1));
+    //     $cfile2 = new \CURLFile(realpath($fname2));
+    //     $cfile3 = new \CURLFile(realpath($fname3));
+
+    //     $post = array (
+    //         'pan_card' => $cfile1,
+    //         'aadhar_front' => $cfile2,
+    //         'aadhar_back' => $cfile3,
+    //         'form-data' => 'service_code=45&initiator_id='.$this->Initiator_ID.'&user_code=34738002&devicenumber=123234234234234&modelname=Morpho&office_address={"line": "Eko India","city":"Gurgaon","state":"Haryana","pincode":"122002"}&address_as_per_proof={"line": "Eko India","city":"Gurgaon","state":"Haryana","pincode":"122002"}',
+    //     ); 
+    //     $curl = curl_init();
+    //     curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, env("SSL_VERIFY"));
+    //     curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,  env("SSL_VERIFY"));
+    //     curl_setopt($curl, CURLOPT_URL, $target_url);
+    //     curl_setopt($curl, CURLOPT_POST, 1);
+    //     curl_setopt($curl, CURLOPT_HEADER, 0);
+    //     curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1); 
+    //     // curl_setopt($curl, CURLOPT_HTTPHEADER,array('Content-Type: multipart/form-data','developer_key: becbbce45f79c6f5109f848acd540567', 'secret-key:MC6dKW278tBef+AuqL/5rW2K3WgOegF0ZHLW/FriZQw=','secret-key-timestamp:1516705204593'));
+    //     curl_setopt($curl, CURLOPT_HTTPHEADER,array('Content-Type: multipart/form-data','developer_key: becbbce45f79c6f5109f848acd540567', 'secret-key:'.$secret_key,'secret-key-timestamp:'.$secret_key_timestamp));
+    //     curl_setopt($curl, CURLOPT_FRESH_CONNECT, 1);   
+    //     curl_setopt($curl, CURLOPT_FORBID_REUSE, 1);  
+    //     curl_setopt($curl, CURLOPT_TIMEOUT, 100);
+    //     curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
+    //     curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');
+    //     $response = curl_exec($curl);
+    //     $err = curl_error($curl);
+    //     $Activate_Payout = 'Something went wrong';
+    //     if ($err) {
+    //         $Activate_Payout = "Error - ".$err;
+    //     }else{
+    //         $Activate_Payout = "Success - ".$response;
+    //     }
+    //     curl_close($curl);
+    //     return view('eko')->with('Activate_Payout',$Activate_Payout);
+    // }
+
+    public function Activate_Payout() { //Completed
+        $curl = curl_init();
+        $encodedKey = base64_encode($this->Authenticator_Key);
+        $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+        $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+        $secret_key = base64_encode($signature);
+        curl_setopt_array($curl, array(
+            CURLOPT_URL =>  $this->Onboarding_URL.'user/service/activate',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'PUT',
+            CURLOPT_POSTFIELDS => 'service_code=45&initiator_id='.$this->Initiator_ID.'&user_code=34738002',
+            CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/x-www-form-urlencoded',
+                'developer_key: '.$this->Developer_Key,
+                'secret-key:'.$secret_key,
+                'secret-key-timestamp:'.$secret_key_timestamp
+            ),
+        ));
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        $Activate_Payout = 'Something went wrong';
+        if ($err) {
+            $Activate_Payout = "Error - ".$err;
+        }else{
+            $Activate_Payout = "Success - ".$response;
+        }
+        curl_close($curl);
+        return view('eko')->with('Activate_Payout',$Activate_Payout);
+    }
+
+    public function Payout_Fund_Transfer() {
+        $curl = curl_init(); 
+        $encodedKey = base64_encode($this->Authenticator_Key);
+        $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+        $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+        $secret_key = base64_encode($signature);
+        curl_setopt_array($curl, array(
+            CURLOPT_SSL_VERIFYHOST => env("SSL_VERIFY"),
+            CURLOPT_SSL_VERIFYPEER => env("SSL_VERIFY"),
+            CURLOPT_URL => $this->Onboarding_URL."agent/user_code:34738002/settlement",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => "initiator_id=".$this->Initiator_ID."&amount=100&payment_mode=5&client_ref_id=HFPYOT141223051701&recipient_name=Arunmozhi&ifsc=CNRB0003437&account=3437108001565&service_code=45&sender_name=NAMVSOFTECH&source=NEWCONNECT&tag=HIFI_FINTECH&beneficiary_account_type=1",
+            CURLOPT_HTTPHEADER => array(
+                'developer_key: '.$this->Developer_Key,
+                'secret-key:'.$secret_key,
+                'secret-key-timestamp:'.$secret_key_timestamp
+            ),
+        ));
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        $Payout_Fund_Transfer = 'Something went wrong';
+        if ($err) {
+            $Payout_Fund_Transfer = "Error - ".$err;
+        }else{
+            $Payout_Fund_Transfer = "Success - ".$response;
+        }
+        curl_close($curl);
+        return view('eko')->with('Payout_Fund_Transfer',$Payout_Fund_Transfer);
+    }
+
+    public function Payout_Transaction_Status_By_ID() {
+        $curl = curl_init(); 
+        $encodedKey = base64_encode($this->Authenticator_Key);
+        $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+        $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+        $secret_key = base64_encode($signature);
+        curl_setopt_array($curl, array(
+            CURLOPT_SSL_VERIFYHOST => env("SSL_VERIFY"),
+            CURLOPT_SSL_VERIFYPEER => env("SSL_VERIFY"),
+            CURLOPT_URL => $this->Onboarding_URL."transactions/3164559959?initiator_id=".$this->Initiator_ID,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => array(
+                'developer_key: '.$this->Developer_Key,
+                'secret-key:'.$secret_key,
+                'secret-key-timestamp:'.$secret_key_timestamp
+            ),
+        ));
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        $Payout_Transaction_Status_By_ID = 'Something went wrong';
+        if ($err) {
+            $Payout_Transaction_Status_By_ID = "Error - ".$err;
+        }else{
+            $Payout_Transaction_Status_By_ID = "Success - ".$response;
+        }
+        curl_close($curl);
+        return view('eko')->with('Payout_Transaction_Status_By_ID',$Payout_Transaction_Status_By_ID);
+    }
+
+    public function Payout_Transaction_Status () {
+        $Payout_Transaction_Status = array(
+                "tx_status" => 0,
+                "amount" => 120.0,
+                "payment_mode" => "5",
+                "txstatus_desc" => "SUCCESS",
+                "fee" => 5.0,
+                "gst" => 0.76,
+                "sender_name" => "Flipkarti",
+                "tid" => 12971412,
+                "beneficiary_account_type" => null,
+                "client_ref_id" => "Settlemet7206124423",
+                "old_tx_status" => 2,
+                "old_tx_status_desc" => "Initiated",
+                "bank_ref_num" => "87694239",
+                "ifsc" => "SBIN0000001",
+                "recipient_name" => "Virender Singh",
+                "account" => "234243534",
+                "timestamp" => "2019-11-01 18:03:48" 
+            );
+        return view('eko')->with('Payout_Transaction_Status',$Payout_Transaction_Status);
+    }
+
     public function Aadhar_Consent() {
         $curl = curl_init();
         $key = env("EKO_STAGING_KEY");
@@ -443,145 +657,6 @@ class EkoController extends Controller
         }
         curl_close($curl);
         return view('eko')->with('Generate_QR',$Generate_QR);
-    }
-
-    public function User_Services_Enquiry() {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, env("SSL_VERIFY"));
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,  env("SSL_VERIFY"));
-        curl_setopt_array($curl, array(
-            CURLOPT_PORT => "25004",
-            CURLOPT_URL => "https://staging.eko.in:25004/ekoapi/v1/user/services/user_code:20110002?initiator_id=9962981729",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "GET",
-            CURLOPT_HTTPHEADER => array(
-              "Cache-Control: no-cache",
-              "content-type: application/x-www-form-urlencoded",
-              "developer_key: becbbce45f79c6f5109f848acd540567",
-              "secret-key: MC6dKW278tBef+AuqL/5rW2K3WgOegF0ZHLW/FriZQw=",
-              "secret-key-timestamp: 1516705204593"
-            ),
-        ));
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-        $User_Services_Enquiry = 'Something went wrong';
-        if ($err) {
-            $User_Services_Enquiry = "Error - ".$err;
-        }else{
-            $User_Services_Enquiry = "Success - ".$response;
-        }
-        curl_close($curl);
-        return view('eko')->with('User_Services_Enquiry',$User_Services_Enquiry);
-    }
-
-    public function Activate_Payout() {
-
-        $key = env("EKO_STAGING_KEY");
-        $encodedKey = base64_encode($key);
-        $secret_key_timestamp = (int)(round(microtime(true) * 1000));
-        $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
-        $secret_key = base64_encode($signature);
-
-        $target_url = "https://staging.eko.in:25004/ekoapi/v1/user/service/activate";   
-
-        $fname1 = "C:\Users\Admin\Downloads\barber.jpg";
-        $fname2 = "C:\Users\Admin\Downloads\barber.jpg";
-        $fname3 = "C:\Users\Admin\Downloads\barber.jpg";
-        
-        
-        $cfile1 = new \CURLFile(realpath($fname1));
-        $cfile2 = new \CURLFile(realpath($fname2));
-        $cfile3 = new \CURLFile(realpath($fname3));
-
-        $post = array (
-            'pan_card' => $cfile1,
-            'aadhar_front' => $cfile2,
-            'aadhar_back' => $cfile3,
-            'form-data' => 'service_code=43&initiator_id=9962981729&user_code=20110002&devicenumber=123234234234234&modelname=Morpho&office_address={"line": "Eko India","city":"Gurgaon","state":"Haryana","pincode":"122002"}&address_as_per_proof={"line": "Eko India","city":"Gurgaon","state":"Haryana","pincode":"122002"}',
-        ); 
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, env("SSL_VERIFY"));
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,  env("SSL_VERIFY"));
-        curl_setopt($curl, CURLOPT_URL, $target_url);
-        curl_setopt($curl, CURLOPT_POST, 1);
-        curl_setopt($curl, CURLOPT_HEADER, 0);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1); 
-        // curl_setopt($curl, CURLOPT_HTTPHEADER,array('Content-Type: multipart/form-data','developer_key: becbbce45f79c6f5109f848acd540567', 'secret-key:MC6dKW278tBef+AuqL/5rW2K3WgOegF0ZHLW/FriZQw=','secret-key-timestamp:1516705204593'));
-        curl_setopt($curl, CURLOPT_HTTPHEADER,array('Content-Type: multipart/form-data','developer_key: becbbce45f79c6f5109f848acd540567', 'secret-key:'.$secret_key,'secret-key-timestamp:'.$secret_key_timestamp));
-        curl_setopt($curl, CURLOPT_FRESH_CONNECT, 1);   
-        curl_setopt($curl, CURLOPT_FORBID_REUSE, 1);  
-        curl_setopt($curl, CURLOPT_TIMEOUT, 100);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-        $Activate_Payout = 'Something went wrong';
-        if ($err) {
-            $Activate_Payout = "Error - ".$err;
-        }else{
-            $Activate_Payout = "Success - ".$response;
-        }
-        curl_close($curl);
-        return view('eko')->with('Activate_Payout',$Activate_Payout);
-    }
-
-    public function Payout_Fund_Transfer() {
-        $curl = curl_init(); 
-        curl_setopt_array($curl, array(
-            CURLOPT_SSL_VERIFYHOST => env("SSL_VERIFY"),
-            CURLOPT_SSL_VERIFYPEER => env("SSL_VERIFY"),
-            CURLOPT_PORT => "25004",
-            CURLOPT_URL => "https://staging.eko.in:25004/ekoapi/v1/agent/user_code:99070092/settlement",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => "initiator_id=9466009091&amount=1045&payment_mode=5&client_ref_id=Settlemet7206123420&recipient_name=Virender%20Singh&ifsc=SBIN0000001&account=234243534&service_code=45&sender_name=Flipkart&source=NEWCONNECT&tag=Logistic&beneficiary_account_type=1",
-            CURLOPT_HTTPHEADER => array(
-            "developer_key: becbbce45f79c6f5109f848acd540567",
-            "secret-key: MC6dKW278tBef+AuqL/5rW2K3WgOegF0ZHLW/FriZQw=",
-            "secret-key-timestamp: 1516705204593"
-            ),
-        ));
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-        $Payout_Fund_Transfer = 'Something went wrong';
-        if ($err) {
-            $Payout_Fund_Transfer = "Error - ".$err;
-        }else{
-            $Payout_Fund_Transfer = "Success - ".$response;
-        }
-        curl_close($curl);
-        return view('eko')->with('Payout_Fund_Transfer',$Payout_Fund_Transfer);
-    }
-
-    public function Payout_Transaction_Status () {
-        $Payout_Transaction_Status = array(
-                "tx_status" => 0,
-                "amount" => 120.0,
-                "payment_mode" => "5",
-                "txstatus_desc" => "SUCCESS",
-                "fee" => 5.0,
-                "gst" => 0.76,
-                "sender_name" => "Flipkarti",
-                "tid" => 12971412,
-                "beneficiary_account_type" => null,
-                "client_ref_id" => "Settlemet7206124423",
-                "old_tx_status" => 2,
-                "old_tx_status_desc" => "Initiated",
-                "bank_ref_num" => "87694239",
-                "ifsc" => "SBIN0000001",
-                "recipient_name" => "Virender Singh",
-                "account" => "234243534",
-                "timestamp" => "2019-11-01 18:03:48" 
-            );
-        return view('eko')->with('Payout_Transaction_Status',$Payout_Transaction_Status);
     }
 
     public function Get_Customer() {

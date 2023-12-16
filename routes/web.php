@@ -21,6 +21,7 @@ Route::post('/User_Services_Enquiry', [App\Http\Controllers\EkoController::class
 Route::post('/Activate_Payout', [App\Http\Controllers\EkoController::class, 'Activate_Payout'])->name('Activate_Payout');
 Route::post('/Payout_Fund_Transfer', [App\Http\Controllers\EkoController::class, 'Payout_Fund_Transfer'])->name('Payout_Fund_Transfer');
 Route::post('/Payout_Transaction_Status', [App\Http\Controllers\EkoController::class, 'Payout_Transaction_Status'])->name('Payout_Transaction_Status');
+Route::post('/Payout_Transaction_Status_By_ID', [App\Http\Controllers\EkoController::class, 'Payout_Transaction_Status_By_ID'])->name('Payout_Transaction_Status_By_ID');
 
 Route::post('/Get_Customer', [App\Http\Controllers\EkoController::class, 'Get_Customer'])->name('Get_Customer');
 Route::post('/Create_Customer', [App\Http\Controllers\EkoController::class, 'Create_Customer'])->name('Create_Customer');

@@ -49,6 +49,13 @@
     @endif
     <input type="submit" value="Payout Fund Transfer">
 </form>
+<form action="{{route('Payout_Transaction_Status_By_ID')}}" method="post">
+    @csrf
+    @if(!empty($Payout_Transaction_Status_By_ID))
+        <p>{{ $Payout_Transaction_Status_By_ID }}</p>
+    @endif 
+    <input style="background-color:blue;color:white;" type="submit" value="Payout Transaction Status By ID">
+</form>
 <form action="{{route('Payout_Transaction_Status')}}" method="post">
     @csrf
     @if(!empty($Payout_Transaction_Status))
