@@ -15,7 +15,7 @@
                                 <th scope="col">Email</th>
                                 <th scope="col">Mobile</th>
                                 <th scope="col">Status</th>
-                                <th scope="col">Action</th>
+                                <!-- <th scope="col">Action</th> -->
                             </tr>
                         </thead>
                         <tbody>
@@ -27,10 +27,10 @@
                                 <td>{{$v->room_mobile}}</td>
                                 @if($v->room_status == 'HFY')
                                 <td>Acivated</td>
-                                <td><button>Deactivate</button></td>
+                                <!-- <td><button>Deactivate</button></td> -->
                                 @else
                                 <td>Deacivated</td>
-                                <td><button>Activate</button></td>
+                                <!-- <td><button>Activate</button></td> -->
                                 @endif
                             </tr>
                             @endforeach
@@ -50,7 +50,7 @@
                                 <th scope="col">Provider Name</th>
                                 <th scope="col">Service Name</th>
                                 <th scope="col">Status</th>
-                                <th scope="col">Action</th>
+                                <!-- <th scope="col">Action</th> -->
                             </tr>
                         </thead>
                         <tbody>
@@ -63,10 +63,10 @@
                                 <td>{{$v->counter_name}}</td>
                                 @if($v->counter_status == 'HFY')
                                 <td>Acivated</td>
-                                <td><button>Deactivate</button></td>
+                                <!-- <td><button>Deactivate</button></td> -->
                                 @else
                                 <td>Deacivated</td>
-                                <td><button>Activate</button></td>
+                                <!-- <td><button>Activate</button></td> -->
                                 @endif
                             </tr>
                             @endforeach

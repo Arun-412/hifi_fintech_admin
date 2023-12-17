@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\ChairController;
+use App\Http\Controllers\EkoPayoutChargesController;
 
 // Route::get('/', function () { return view('eko'); }); 
 
@@ -72,8 +73,9 @@ Route::middleware(['auth'])->group(function () {
     Route::group(['prefix' => 'services'], function () {  
         Route::group(['prefix' => 'payout'], function () {  
             Route::group(['prefix' => 'eko'], function () {  
-                Route::get('/', function () { return view('services.payout'); })->name('payout_eko');
+                // Route::get('/', function () { return view('services.payout.eko'); })->name('payout_eko');
                 Route::get('/add_rule', [ChairController::class, 'add_rule'])->name('payout_eko_add_rule'); 
+                Route::get('/', [EkoPayoutChargesController::class, 'get_charges'])->name('payout_eko'); 
             }); 
         });  
     }); 
