@@ -26,8 +26,10 @@ return new class extends Migration
             $table->string('kyc_status');
             $table->string('door_mode');
             $table->string('door_opened_by');
+            $table->string('door_price');
             $table->string('door_status');
             $table->string('door_key')->nullable();
+            $table->decimal('awards',9,2);
             $table->timestamps();
         });
     }
