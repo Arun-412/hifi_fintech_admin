@@ -26,7 +26,7 @@
                                 <td>{{$v->room_email}}</td>
                                 <td>{{$v->room_mobile}}</td>
                                 @if($v->room_status == 'HFY')
-                                <td>Acivated</td>
+                                <td>Activated</td>
                                 <!-- <td><button>Deactivate</button></td> -->
                                 @else
                                 <td>Deacivated</td>
@@ -62,7 +62,7 @@
                                 @endif
                                 <td>{{$v->counter_name}}</td>
                                 @if($v->counter_status == 'HFY')
-                                <td>Acivated</td>
+                                <td>Activated</td>
                                 <!-- <td><button>Deactivate</button></td> -->
                                 @else
                                 <td>Deacivated</td>

@@ -65,7 +65,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/logout', [UserController::class, 'Logout'])->name('logout');
 
     Route::get('/profile', function () { return view('profile'); })->name('profile');
-    Route::get('/settings', function () { return view('settings'); })->name('settings');
+    Route::get('/settings', function () { return view('settings'); })->name('settings');    
     Route::get('/support', function () { return view('support'); })->name('support');
 
     Route::get('/services', [ServicesController::class, 'services'])->name('services');

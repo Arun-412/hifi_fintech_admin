@@ -18,13 +18,13 @@
                             <li><a href="{{route('payout_eko')}}">payout EKO</a></li>
                         </ul>
                     </li>
-                    <li class="nav-item hoverd">
+                    <!-- <li class="nav-item hoverd">
                         <a class="nav-link">
                             <span class="lan-7">Users</span></a>
                         <ul class="submenu">
                             <li><a href="{{route('distributer')}}">Distributer</a></li>
                         </ul>
-                    </li>
+                    </li> -->
                     <li class="nav-item">
                         <a class="nav-link" href="{{route('report')}}">Report</a>
                     </li>
