@@ -110,6 +110,7 @@ class IdentityController extends Controller
                             $kyc->name = json_encode($name);
                             $kyc->date_of_birth = $request->date_of_birth;
                             $kyc->pan_number = $request->pan;
+                            $kyc->aadhar_number = $request->aadhar_number;
                             $kyc->pan_response = json_encode($Pan_Verify);
                             $address = [];
                             $address['street']= $request->street;
@@ -119,7 +120,7 @@ class IdentityController extends Controller
                             $kyc->address = json_encode($address);
                             $kyc->save();
                             if($kyc->save() != ""){
-                                $Pan_Verify = array("status"=>true,"message"=>"PAN verification successful");
+                                $Pan_Verify = array("status"=>true,"message"=>"KYC Completed successfully");
                             }
                             else{
                                 $Pan_Verify = array("status"=>false,"message"=>"Something went wrong in PAN Verification");
