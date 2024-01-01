@@ -160,8 +160,8 @@ class IdentityController extends Controller
                             $kyc->address = json_encode($address);
                             $kyc->save();
                             if($kyc->save() != ""){
-                                $kyc_user = identity::where(['door_code'=>'HFRvS27Dz9dc'])->first();
-                                $user = User::where(['door_code'=>'HFRvS27Dz9dc'])->first();
+                                $kyc_user = identity::where(['door_code'=>$request->door_code])->first();
+                                $user = User::where(['door_code'=>$request->door_code])->first();
                                 $name = json_decode($kyc_user->name);
                                 $data = array(
                                     "url"=>'user/onboard',
