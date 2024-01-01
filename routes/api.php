@@ -21,3 +21,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::group(['prefix' => 'kyc'], function () {   
     Route::post('/pan_address', [App\Http\Controllers\IdentityController::class, 'pan_address'])->name('pan_address');
 });
+
+Route::group(['prefix' => 'payout'], function () {   
+    Route::post('/activate_service', [App\Http\Controllers\EkoController::class, 'activate_service'])->name('activate_service');
+});

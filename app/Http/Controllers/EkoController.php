@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class EkoController extends Controller
 {
+    private $Access_Key;
     private $Base_URL;
     private $Onboarding_URL;
     private $Initiator_ID;
@@ -15,6 +16,13 @@ class EkoController extends Controller
     private $Authenticator_Key;
     private $admin_code;
     public function __construct() {
+        if(env("API_ACCESS_MODE") == "LIVE"){
+            $this->Access_Key = env("API_PRODUCTION_ACCESS_KEY");
+        }else if(env("API_ACCESS_MODE") == "TEST"){
+            $this->Access_Key = env("API_STAGING_ACCESS_KEY");
+        }else{
+            $this->Access_Key = env("API_LOCAL_ACCESS_KEY");         
+        }
         if(env("EKO_MODE") == "LIVE"){
             $this->Onboarding_URL = env("EKO_ONBOARDING_PRODUCTION");
             $this->Base_URL = env("EKO_BASE_URL_PRODUCTION");
@@ -31,8 +39,75 @@ class EkoController extends Controller
             $this->admin_code = env("EKO_ADMIN_CODE_STAGING");
         }
     }
+
+    public function eko_activate_service ($data) {
+        try{
+            if(env("EKO_MODE") == "LIVE"){
+                $encodedKey = base64_encode($this->Authenticator_Key);
+                $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+                $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+                $secret_key = base64_encode($signature);
+            }
+            else{
+                $secret_key_timestamp = "1516705204593";
+                $secret_key = "MC6dKW278tBef+AuqL/5rW2K3WgOegF0ZHLW/FriZQw=";
+            }
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL =>  $data['url'],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'PUT',
+                CURLOPT_POSTFIELDS => $data['data'],
+                CURLOPT_HTTPHEADER => array(
+                    'Content-Type: application/x-www-form-urlencoded',
+                    'developer_key: '.$this->Developer_Key,
+                    'secret-key:'.$secret_key,
+                    'secret-key-timestamp:'.$secret_key_timestamp
+                ),
+            ));
+            $responses = curl_exec($curl);
+            $err = curl_error($curl);
+            $response = 'Something went wrong from Activate service from admin';
+            if ($err) {
+                $response = $err;
+            }else{
+                $response = $responses;
+            }
+            curl_close($curl);
+            return json_decode($response);
+        }catch(\Throwable $e){
+            return $e->getmessage();
+        }
+    }
+    
+    public function activate_service(Request $request){
+        try{
+            if($this->Access_Key == $request->token){
+                $data = array(
+                    "url"=>$this->Onboarding_URL.'user/service/activate',
+                    "data"=>'service_code=4&initiator_id='.$this->Initiator_ID.'&user_code='.$request->user_code
+                );
+                $activated = $this->eko_activate_service($data);
+                if($activated->message == "This user does not exist"){
+                    return array("status"=>true,"message"=>"Service activated successfully");
+                }
+                else{
+                    return array("status"=>false,"message"=>"Something went wrong in activate service");
+                }
+            }else{
+                return array("status"=>false,"message"=>"You are noted! Do not try again");
+            }
+        }catch(\Throwable $e){
+            return array("status"=>false,"message"=>$e->getmessage());
+        }
+    }
   
-    public function Activate_Service() { //Completed
+    public function Activate_Services() { //Completed
         $curl = curl_init();
         $encodedKey = base64_encode($this->Authenticator_Key);
         $secret_key_timestamp = (int)(round(microtime(true) * 1000));
