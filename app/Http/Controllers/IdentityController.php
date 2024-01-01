@@ -6,6 +6,7 @@ use App\Models\identity;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Models\User;
 
 class IdentityController extends Controller
 {
@@ -81,6 +82,45 @@ class IdentityController extends Controller
         }
     }
 
+    public function curl_put ($data) {
+        try{
+            $curl = curl_init();
+            $encodedKey = base64_encode($this->Authenticator_Key);
+            $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+            $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+            $secret_key = base64_encode($signature);
+            curl_setopt_array($curl, array(
+                CURLOPT_URL =>  $this->Onboarding_URL.$data['url'],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'PUT',
+                CURLOPT_POSTFIELDS => $data['data'],
+                CURLOPT_HTTPHEADER => array(
+                    'Content-Type: application/x-www-form-urlencoded',
+                    'developer_key: '.$this->Developer_Key,
+                    'secret-key:'.$secret_key,
+                    'secret-key-timestamp:'.$secret_key_timestamp
+                ),
+            ));
+            $responses = curl_exec($curl);
+            $err = curl_error($curl);
+            $response = 'Something went wrong from sending values';
+            if ($err) {
+                $response = $err;
+            }else{
+                $response = $responses;
+            }
+            curl_close($curl);
+            return json_decode($response);
+        }catch(\Throwable $e){
+            return $e->getmessage();
+        }        
+    }
+
     public function pan_address(Request $request){
         try{
             if($this->Access_Key == $request->token){
@@ -113,14 +153,40 @@ class IdentityController extends Controller
                             $kyc->aadhar_number = $request->aadhar_number;
                             $kyc->pan_response = json_encode($Pan_Verify);
                             $address = [];
-                            $address['street']= $request->street;
+                            $address['line']= $request->street;
                             $address['city']= $request->city;
                             $address['state']= $request->state;
                             $address['pincode']= $request->pincode;
                             $kyc->address = json_encode($address);
                             $kyc->save();
                             if($kyc->save() != ""){
-                                $Pan_Verify = array("status"=>true,"message"=>"KYC Completed successfully");
+                                $kyc_user = identity::where(['door_code'=>'HFRvS27Dz9dc'])->first();
+                                $user = User::where(['door_code'=>'HFRvS27Dz9dc'])->first();
+                                $name = json_decode($kyc_user->name);
+                                $data = array(
+                                    "url"=>'user/onboard',
+                                    "data"=>"initiator_id=".$this->Initiator_ID."&pan_number=CCAPA9739C&mobile=".$user->mobile_number."&first_name=".$name->first_name."&last_name=".$name->last_name."&email=".$user->email."&residence_address=".$kyc_user->address."&dob=".$kyc_user->date_of_birth."&shop_name=".$user->shop_name,
+                                );
+                                $user_onboard = $this->curl_put($data);
+                                if($user_onboard->message == "PAN verification fail"){
+                                    $provider = [];
+                                    $provider['eko'] = 22123212;
+                                    $user->provider_status = json_encode($provider);
+                                    $provider_response = [];
+                                    $provider_response['eko'] = $user_onboard;
+                                    $user->provider_response = json_encode($provider_response);
+                                    $user->kyc_status = "HFY";
+                                    $user->save();
+                                    if($user->save()){
+                                        $Pan_Verify = array("status"=>true,"message"=>"KYC Completed successfully");
+                                    }
+                                    else{
+                                        $Pan_Verify = array("status"=>false,"message"=>"Something went wrong in completing KYC");
+                                    }
+                                }
+                                else{
+                                    $Pan_Verify = array("status"=>false,"message"=>$user_onboard->message);
+                                }
                             }
                             else{
                                 $Pan_Verify = array("status"=>false,"message"=>"Something went wrong in PAN Verification");
@@ -139,7 +205,7 @@ class IdentityController extends Controller
                 return array("status"=>false,"message"=>"You are noted! Do not try again");
             }
         }catch(\Throwable $e){
-            return $e->getmessage();
+            return array("status"=>false,"message"=>$e->getmessage());
         }
     }
 }
