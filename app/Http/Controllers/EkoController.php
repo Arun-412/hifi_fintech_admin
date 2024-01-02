@@ -88,16 +88,31 @@ class EkoController extends Controller
     public function activate_service(Request $request){
         try{
             if($this->Access_Key == $request->token){
-                $data = array(
-                    "url"=>$this->Onboarding_URL.'user/service/activate',
-                    "data"=>'service_code=4&initiator_id='.$this->Initiator_ID.'&user_code='.$request->user_code
-                );
-                $activated = $this->eko_activate_service($data);
-                if($activated->message == "This user does not exist"){
-                    return array("status"=>true,"message"=>"Service activated successfully");
+                if(env("API_ACCESS_MODE") == "LIVE"){
+                    $data = array(
+                        "url"=>$this->Onboarding_URL.'user/service/activate',
+                        "data"=>'service_code='.$request->service_code.'&initiator_id='.$this->Initiator_ID.'&user_code='.$request->user_code
+                    );
+                    $activated = $this->eko_activate_service($data);
+                    if($activated->data->service_status_desc == "Service Activated for the user"){
+                        return array("status"=>true,"message"=>"Service activated successfully");
+                    }
+                    else{
+                        return array("status"=>false,"message"=>"Something went wrong in activate service");
+                    }
                 }
                 else{
-                    return array("status"=>false,"message"=>"Something went wrong in activate service");
+                    $data = array(
+                        "url"=>$this->Onboarding_URL.'user/service/activate',
+                        "data"=>'service_code=4&initiator_id='.$this->Initiator_ID.'&user_code='.$request->user_code
+                    );
+                    $activated = $this->eko_activate_service($data);
+                    if($activated->message == "This user does not exist"){
+                        return array("status"=>true,"message"=>"Service activated successfully");
+                    }
+                    else{
+                        return array("status"=>false,"message"=>"Something went wrong in activate service");
+                    }
                 }
             }else{
                 return array("status"=>false,"message"=>"You are noted! Do not try again");

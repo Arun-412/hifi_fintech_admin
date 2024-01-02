@@ -132,7 +132,57 @@ class IdentityController extends Controller
                 if($Pan_Verify != "" && $Pan_Verify->message != ''){
                     if(env("API_ACCESS_MODE") == "LIVE"){
                         if($Pan_Verify->message == "PAN verification successful"){
-                            $Pan_Verify = array("status"=>true,"message"=>$Pan_Verify->message);
+                            $kyc = new identity;
+                            $kyc->kyc_code = "HFI".Str::random(4)."S".Str::random(4);
+                            $kyc->door_code = $request->door_code;
+                            $name = [];
+                            $name['first_name'] = $Pan_Verify->data->first_name;
+                            $name['middle_name'] = $Pan_Verify->data->middle_name;
+                            $name['last_name'] = $Pan_Verify->data->last_name; 
+                            $kyc->name = json_encode($name);
+                            $kyc->date_of_birth = $request->date_of_birth;
+                            $kyc->pan_number = $Pan_Verify->data->pan_number;
+                            $kyc->aadhar_number = $request->aadhar_number;
+                            $kyc->pan_response = json_encode($Pan_Verify);
+                            $address = [];
+                            $address['line']= $request->street;
+                            $address['city']= $request->city;
+                            $address['state']= $request->state;
+                            $address['pincode']= $request->pincode;
+                            $kyc->address = json_encode($address);
+                            $kyc->save();
+                            if($kyc->save() != ""){
+                                $kyc_user = identity::where(['door_code'=>$request->door_code])->first();
+                                $user = User::where(['door_code'=>$request->door_code])->first();
+                                $name = json_decode($kyc_user->name);
+                                $data = array(
+                                    "url"=>'user/onboard',
+                                    "data"=>"initiator_id=".$this->Initiator_ID."&pan_number=CCAPA9739C&mobile=".$user->mobile_number."&first_name=".$name->first_name."&last_name=".$name->last_name."&email=".$user->email."&residence_address=".$kyc_user->address."&dob=".$kyc_user->date_of_birth."&shop_name=".$user->shop_name,
+                                );
+                                $user_onboard = $this->curl_put($data);
+                                if($user_onboard->message == "User onboarding successfull"){
+                                    $provider = [];
+                                    $provider['eko'] = $user_onboard->data->user_code;
+                                    $user->provider_status = json_encode($provider);
+                                    $provider_response = [];
+                                    $provider_response['eko'] = $user_onboard;
+                                    $user->provider_response = json_encode($provider_response);
+                                    $user->kyc_status = "HFY";
+                                    $user->save();
+                                    if($user->save()){
+                                        $Pan_Verify = array("status"=>true,"message"=>"KYC Completed successfully");
+                                    }
+                                    else{
+                                        $Pan_Verify = array("status"=>false,"message"=>"Something went wrong in completing KYC");
+                                    }
+                                }
+                                else{
+                                    $Pan_Verify = array("status"=>false,"message"=>$user_onboard->message);
+                                }
+                            }
+                            else{
+                                $Pan_Verify = array("status"=>false,"message"=>"Something went wrong in PAN Verification");
+                            }
                         }
                         else{
                             $Pan_Verify = array("status"=>false,"message"=>$Pan_Verify->message);
