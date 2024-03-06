@@ -267,6 +267,46 @@ class EkoController extends Controller
         return view('eko')->with('Onboard_User',$Onboard_User);
     }
 
+    public function Bank_Account_Verification() {
+        // return "Hi";
+        $curl = curl_init();
+        // $key = env("EKO_STAGING_KEY");
+        // $encodedKey = base64_encode($key);
+        // $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+        // $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+        // $secret_key = base64_encode($signature);
+        curl_setopt_array($curl, array(
+            CURLOPT_SSL_VERIFYHOST => env("SSL_VERIFY"),
+            CURLOPT_SSL_VERIFYPEER => env("SSL_VERIFY"),
+            CURLOPT_URL => 'https://staging.eko.in:25004/ekoapi/v2/banks/ifsc:KKBK0000261/accounts/1711654121',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => 'initiator_id=9962981729&customer_id=7661109875&client_ref_id=AVS20181123194719311&user_code=20810200',
+            CURLOPT_HTTPHEADER => array(
+                'developer_key: becbbce45f79c6f5109f848acd540567',
+                'secret-key:MC6dKW278tBef+AuqL/5rW2K3WgOegF0ZHLW/FriZQw=',
+                'secret-key-timestamp:1516705204593',
+                'Content-Type: application/x-www-form-urlencoded'
+            ),
+        ));
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        $Bank_Account_Verification = 'Something went wrong';
+        if ($err) {
+            $Bank_Account_Verification = "Error - ".$err;
+        }else{
+            $Bank_Account_Verification = "Success - ".$response;
+        }
+        curl_close($curl);
+        return $Bank_Account_Verification;
+        // return view('eko')->with('Bank_Account_Verification',$Bank_Account_Verification);
+    }
+
     public function Request_OTP() { //otp not received
         $curl = curl_init();
         $encodedKey = base64_encode($this->Authenticator_Key);
@@ -897,44 +937,6 @@ class EkoController extends Controller
         }
         curl_close($curl);
         return view('eko')->with('Get_Bank_Details',$Get_Bank_Details);
-    }
-
-    public function Bank_Account_Verification() {
-        $curl = curl_init();
-        $key = env("EKO_STAGING_KEY");
-        $encodedKey = base64_encode($key);
-        $secret_key_timestamp = (int)(round(microtime(true) * 1000));
-        $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
-        $secret_key = base64_encode($signature);
-        curl_setopt_array($curl, array(
-            CURLOPT_SSL_VERIFYHOST => env("SSL_VERIFY"),
-            CURLOPT_SSL_VERIFYPEER => env("SSL_VERIFY"),
-            CURLOPT_URL => 'https://staging.eko.in:25004/ekoapi/v2/banks/ifsc:KKBK0000261/accounts/1711654121',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => 'initiator_id=9962981729&customer_id=7661109875&client_ref_id=AVS20181123194719311&user_code=20810200',
-            CURLOPT_HTTPHEADER => array(
-                'developer_key: becbbce45f79c6f5109f848acd540567',
-                'secret-key:'.$secret_key,
-                'secret-key-timestamp:'.$secret_key_timestamp,
-                'Content-Type: application/x-www-form-urlencoded'
-            ),
-        ));
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-        $Bank_Account_Verification = 'Something went wrong';
-        if ($err) {
-            $Bank_Account_Verification = "Error - ".$err;
-        }else{
-            $Bank_Account_Verification = "Success - ".$response;
-        }
-        curl_close($curl);
-        return view('eko')->with('Bank_Account_Verification',$Bank_Account_Verification);
     }
 
     public function Add_Recipient(){
