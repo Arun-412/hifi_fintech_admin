@@ -82,7 +82,7 @@ class IdentityController extends Controller
                 $response = $responses;
             }
             curl_close($curl);
-            return json_decode($response);
+            return json_decode($response,true);
         }catch(\Throwable $e){
             return $e->getmessage();
         }
@@ -123,7 +123,7 @@ class IdentityController extends Controller
                 $response = $responses;
             }
             curl_close($curl);
-            return json_decode($response);
+            return json_decode($response,true);
         }catch(\Throwable $e){
             return $e->getmessage();
         }        
@@ -282,9 +282,9 @@ class IdentityController extends Controller
                     "data"=>'pan_number='.$request->pan.'&purpose=1&initiator_id='.$this->Initiator_ID.'&purpose_desc=onboarding'
                 );
                 $Pan_Verify = $this->curl_post($data);
-                if($Pan_Verify != "" && $Pan_Verify->message != ''){
-                    if(env("API_ACCESS_MODE") == "LIVE"){
-                        if($Pan_Verify->message == "PAN verification successful"){
+                if(env("API_ACCESS_MODE") == "LIVE"){
+                    if($Pan_Verify != "" && $Pan_Verify['message'] != ''){
+                        if($Pan_Verify['message'] == "PAN verification successful"){
                             $kyc = new identity;
                             $kyc->kyc_code = "HFI".Str::random(4)."S".Str::random(4);
                             $kyc->door_code = $request->door_code;
@@ -313,7 +313,7 @@ class IdentityController extends Controller
                                     "data"=>"initiator_id=".$this->Initiator_ID."&pan_number=".$request->pan."&mobile=".$user->mobile_number."&first_name=".$name->first_name."&last_name=".$name->last_name."&email=".$user->email."&residence_address=".$kyc_user->address."&dob=".$kyc_user->date_of_birth."&shop_name=".$user->shop_name,
                                 );
                                 $user_onboard = $this->curl_put($data);
-                                if($user_onboard->message == "User onboarding successfull"){
+                                if($user_onboard['message'] == "User onboarding successfull"){
                                     $provider = [];
                                     $provider['eko'] = $user_onboard->data->user_code;
                                     $user->provider_status = json_encode($provider);
@@ -330,7 +330,7 @@ class IdentityController extends Controller
                                     }
                                 }
                                 else{
-                                    $Pan_Verify = array("status"=>false,"message"=>$user_onboard->message);
+                                    $Pan_Verify = array("status"=>false,"message"=>$user_onboard['message']);
                                 }
                             }
                             else{
@@ -338,70 +338,70 @@ class IdentityController extends Controller
                             }
                         }
                         else{
-                            $Pan_Verify = array("status"=>false,"message"=>$Pan_Verify->message);
+                            $Pan_Verify = array("status"=>false,"message"=>$Pan_Verify['message']);
                         }
                     }
                     else{
-                        if($Pan_Verify->message == "Customer not allowed"){
-                            $kyc = new identity;
-                            $kyc->kyc_code = "HFI".Str::random(4)."S".Str::random(4);
-                            $kyc->door_code = $request->door_code;
-                            $name = [];
-                            $name['first_name'] = "HIFI";
-                            $name['middle_name'] = "FINTECH";
-                            $name['last_name'] = "USER"; 
-                            $kyc->name = json_encode($name);
-                            $kyc->date_of_birth = $request->date_of_birth;
-                            $kyc->pan_number = $request->pan;
-                            $kyc->aadhar_number = $request->aadhar_number;
-                            $kyc->pan_response = json_encode($Pan_Verify);
-                            $address = [];
-                            $address['line']= $request->street;
-                            $address['city']= $request->city;
-                            $address['state']= $request->state;
-                            $address['pincode']= $request->pincode;
-                            $kyc->address = json_encode($address);
-                            $kyc->save();
-                            if($kyc->save() != ""){
-                                $kyc_user = identity::where(['door_code'=>$request->door_code])->first();
-                                $user = User::where(['door_code'=>$request->door_code])->first();
-                                $name = json_decode($kyc_user->name);
-                                $data = array(
-                                    "url"=>'user/onboard',
-                                    "data"=>"initiator_id=".$this->Initiator_ID."&pan_number=".$request->pan."&mobile=".$user->mobile_number."&first_name=".$name->first_name."&last_name=".$name->last_name."&email=".$user->email."&residence_address=".$kyc_user->address."&dob=".$kyc_user->date_of_birth."&shop_name=".$user->shop_name,
-                                );
-                                $user_onboard = $this->curl_put($data);
-                                if($user_onboard->message == "PAN verification fail"){
-                                    $provider = [];
-                                    $provider['eko'] = 22123212;
-                                    $user->provider_status = json_encode($provider);
-                                    $provider_response = [];
-                                    $provider_response['eko'] = $user_onboard;
-                                    $user->provider_response = json_encode($provider_response);
-                                    $user->kyc_status = "HFY";
-                                    $user->save();
-                                    if($user->save()){
-                                        $Pan_Verify = array("status"=>true,"message"=>"KYC Completed successfully");
-                                    }
-                                    else{
-                                        $Pan_Verify = array("status"=>false,"message"=>"Something went wrong in completing KYC");
-                                    }
-                                }
-                                else{
-                                    $Pan_Verify = array("status"=>false,"message"=>$user_onboard->message);
-                                }
-                            }
-                            else{
-                                $Pan_Verify = array("status"=>false,"message"=>"Something went wrong in PAN Verification");
-                            }
-                        }
-                        else{
-                            $Pan_Verify = array("status"=>false,"message"=>$Pan_Verify->message);
-                        }
+                        $Pan_Verify = array("status"=>false,"message"=>"Something went wrong from PAN");
                     }
                 }
                 else{
-                    $Pan_Verify = array("status"=>false,"message"=>"Something went wrong from PAN");
+                    if($Pan_Verify['message'] == "Customer not allowed"){
+                        $kyc = new identity;
+                        $kyc->kyc_code = "HFI".Str::random(4)."S".Str::random(4);
+                        $kyc->door_code = $request->door_code;
+                        $name = [];
+                        $name['first_name'] = "HIFI";
+                        $name['middle_name'] = "FINTECH";
+                        $name['last_name'] = "USER"; 
+                        $kyc->name = json_encode($name);
+                        $kyc->date_of_birth = $request->date_of_birth;
+                        $kyc->pan_number = $request->pan;
+                        $kyc->aadhar_number = $request->aadhar_number;
+                        $kyc->pan_response = json_encode($Pan_Verify);
+                        $address = [];
+                        $address['line']= $request->street;
+                        $address['city']= $request->city;
+                        $address['state']= $request->state;
+                        $address['pincode']= $request->pincode;
+                        $kyc->address = json_encode($address);
+                        $kyc->save();
+                        if($kyc->save() != ""){
+                            $kyc_user = identity::where(['door_code'=>$request->door_code])->first();
+                            $user = User::where(['door_code'=>$request->door_code])->first();
+                            $name = json_decode($kyc_user->name);
+                            $data = array(
+                                "url"=>'user/onboard',
+                                "data"=>"initiator_id=".$this->Initiator_ID."&pan_number=".$request->pan."&mobile=".$user->mobile_number."&first_name=".$name->first_name."&last_name=".$name->last_name."&email=".$user->email."&residence_address=".$kyc_user->address."&dob=".$kyc_user->date_of_birth."&shop_name=".$user->shop_name,
+                            );
+                            $user_onboard = $this->curl_put($data);
+                            if($user_onboard['message'] == "PAN verification fail"){
+                                $provider = [];
+                                $provider['eko'] = 22123212;
+                                $user->provider_status = json_encode($provider);
+                                $provider_response = [];
+                                $provider_response['eko'] = $user_onboard;
+                                $user->provider_response = json_encode($provider_response);
+                                $user->kyc_status = "HFY";
+                                $user->save();
+                                if($user->save()){
+                                    $Pan_Verify = array("status"=>true,"message"=>"KYC Completed successfully");
+                                }
+                                else{
+                                    $Pan_Verify = array("status"=>false,"message"=>"Something went wrong in completing KYC");
+                                }
+                            }
+                            else{
+                                $Pan_Verify = array("status"=>false,"message"=>$user_onboard['message']);
+                            }
+                        }
+                        else{
+                            $Pan_Verify = array("status"=>false,"message"=>"Something went wrong in PAN Verification");
+                        }
+                    }
+                    else{
+                        $Pan_Verify = array("status"=>false,"message"=>$Pan_Verify['message']);
+                    }
                 }
                 return $Pan_Verify;
             }else{
