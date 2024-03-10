@@ -282,7 +282,7 @@ class IdentityController extends Controller
                     "data"=>'pan_number='.$request->pan.'&purpose=1&initiator_id='.$this->Initiator_ID.'&purpose_desc=onboarding'
                 );
                 $Pan_Verify = $this->curl_post($data);
-                if(env("API_ACCESS_MODE") == "LIVE"){
+                if(env("EKO_MODE") == "LIVE"){
                     if($Pan_Verify != "" && $Pan_Verify['message'] != ''){
                         if($Pan_Verify['message'] == "PAN verification successful"){
                             $kyc = new identity;
