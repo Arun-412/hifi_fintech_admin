@@ -125,4 +125,88 @@ $('#payout_rules_table').DataTable({
    
     buttons: []
 });
+$('#wallet_topup').DataTable({
+    dom:'Blfrtip',
+    
+    colReorder: true,
+    fixedHeader: {
+        header: true
+    }, 
+   
+    buttons: []
 });
+
+$('#retailers_list').DataTable({
+    dom:'Blfrtip',
+    
+    colReorder: true,
+    fixedHeader: {
+        header: true
+    }, 
+   
+    buttons: []
+});
+
+$('#distributers_list').DataTable({
+    dom:'Blfrtip',
+    
+    colReorder: true,
+    fixedHeader: {
+        header: true
+    }, 
+   
+    buttons: []
+});
+});
+
+$('#wallet_topup').on('click', 'tbody #top_up', function () {
+    var data_row = $('#wallet_topup').DataTable().row($(this).closest('tr')).data();
+    $('#w_user_code').val(data_row[0]);
+    $('#w_shop_name').val(data_row[2]);
+    $('#w_mobile_number').val(data_row[3]);
+    $('#w_current_balance').val(data_row[4]);
+    $('#w_hold_balance').val(data_row[5]);
+    $('#wallet_top_up_model').modal('show');
+})
+
+$('#wallet_submit').on('click', function () {
+    $('.loader-section').fadeIn('slow');
+    $.ajax({
+        url: "/wallet/actions",
+        method:"POST",
+        data: { 
+            "shop_name":$('#w_shop_name').val(),
+            "amount":$('#w_amount').val(),
+            "user_code":$('#w_user_code').val(),
+            "action_type":$('#wallet_action_type').find(":selected").val(),
+        },
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function (data) {
+            console.log(data);
+            if(data['status'] == true){
+                $('#t_success_body').text(data['message']);
+                $('#t_success').toast('show');
+                $('#wallet_top_up_model').modal('hide');
+                $('.loader-section').fadeOut('slow');
+                setInterval(location.reload(),5000);
+            }else{
+                $('#t_failed_body').text(data['message']);
+                $('#t_failed').toast('show');
+                $('#wallet_top_up_model').modal('hide');
+                $('.loader-section').fadeOut('slow');
+            }
+        },
+        error: function (xhr, status, error) {
+            var message = xhr['responseText'];
+            message = JSON.parse(message);
+            message= message['message'];
+            $('#t_failed_body').text(message);
+            $('#t_failed').toast('show');
+            $('#wallet_top_up_model').modal('hide');
+            $('.loader-section').fadeOut('slow');
+        }
+    });
+});
+

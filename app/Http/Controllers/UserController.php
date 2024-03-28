@@ -120,4 +120,62 @@ class UserController extends Controller
             return back()->withInput()->with("failed",$e->getmessage());
         }
     }
+
+    public function New_Distributer (Request $request) {
+        try{
+            $validate = Validator::make($request->all(), [
+                'shop_name' => 'required|string|min:3|max:40',
+                'mobile_number' => 'required|digits:10|numeric|unique:doors',
+                'email' => 'required|email|max:40|unique:doors',
+            ],);
+            if($validate->fails()){
+                return back()->withInput()->withErrors($validate);
+            }else{
+                $door_access = User::create([
+                    'door_code' => "HFD".Str::random(4)."A".Str::random(4),
+                    'shop_name' => $request->shop_name,
+                    'mobile_number' => $request->mobile_number,
+                    'mobile_otp' =>123456,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->mobile_number),
+                    'kyc_status' => "HFN",
+                    'door_mode' => "HF11",
+                    'door_opened_by' => Auth::user()->door_code,
+                    'door_status' => "HFY",
+                    'door_price' => "HFN",
+                    'door_key' => 0,
+                    'awards' => 0
+                ]);
+                if($door_access){
+                    $distributers = User::where(['door_code'=>'HF11'])->orderBy('id', 'DESC')->get();
+                    return redirect('distributers')->with('dataN',$distributers);
+                }else{
+                    return back()->with("failed",'Unable to create distributer');
+                }
+            }
+        }
+        catch(\Throwable $e){
+            return back()->withInput()->with("failed",$e->getmessage());
+        }
+    }
+
+    public function distributers(Request $request) {
+        try{
+            $distributers = User::where(['door_mode'=>'HF11'])->orderBy('id', 'DESC')->get();
+            return view('user_management.distributers')->with('data',$distributers);
+        }
+        catch(\Throwable $e){
+            return back()->withInput()->with("failed",$e->getmessage());
+        }
+    }
+
+    public function retailers(Request $request) {
+        try{
+            $retailers = User::where(['door_mode'=>'HF00'])->orderBy('id', 'DESC')->get();
+            return view('user_management.retailers')->with('data',$retailers);
+        }
+        catch(\Throwable $e){
+            return back()->withInput()->with("failed",$e->getmessage());
+        }
+    }
 }

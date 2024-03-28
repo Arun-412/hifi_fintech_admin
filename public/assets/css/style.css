@@ -688,3 +688,12 @@ a.nav-link.active {
 .status-title p{
     margin-bottom: 0;
 }
+#t_pending{
+    background-color:#F4BC37;
+}
+#t_success{
+    background-color:#02A94C;
+}
+#t_failed{
+    background-color:#E00123;
+}

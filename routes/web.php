@@ -5,6 +5,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\ChairController;
 use App\Http\Controllers\EkoPayoutChargesController;
+use App\Http\Controllers\WalletController;
 
 // Route::get('/', function () { return view('eko'); }); 
 
@@ -60,9 +61,19 @@ Route::middleware(['guest'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () { return view('dashboard'); })->name('dashboard');
-    Route::get('/distributer', function () { return view('user_management.distributer'); })->name('distributer');
     Route::get('/report', function () { return view('report'); })->name('report');
     Route::get('/logout', [UserController::class, 'Logout'])->name('logout');
+
+    Route::get('/distributers',[UserController::class, 'distributers'])->name('distributers');
+    Route::get('/retailers',[UserController::class, 'retailers'])->name('retailers');
+    Route::post('/register_distributer',[UserController::class,'New_Distributer'])->name('register_distributer');
+
+    Route::group(['prefix' => 'wallet'], function () {  
+        Route::get('/',[WalletController::class, 'distributer_wallets'])->name('distributer_wallets');
+        Route::post('/actions',[WalletController::class, 'wallet_actions'])->name('wallet_actions');
+        Route::get('/approvals',[WalletController::class, 'wallet_approval'])->name('wallet_approval');
+        Route::get('/OD',[WalletController::class, 'wallet_auto_topup'])->name('wallet_auto_topup');
+    });
 
     Route::get('/profile', function () { return view('profile'); })->name('profile');
     Route::get('/settings', function () { return view('settings'); })->name('settings');    

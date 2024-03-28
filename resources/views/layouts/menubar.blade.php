@@ -18,13 +18,29 @@
                             <li><a href="{{route('payout_eko')}}">payout EKO</a></li>
                         </ul>
                     </li>
-                    <!-- <li class="nav-item hoverd">
+                    <li class="nav-item hoverd">
                         <a class="nav-link">
                             <span class="lan-7">Users</span></a>
                         <ul class="submenu">
-                            <li><a href="{{route('distributer')}}">Distributer</a></li>
+                            <li><a href="{{route('distributers')}}">Distributers</a></li>
+                            <li><a href="{{route('retailers')}}">Retailers</a></li>
                         </ul>
-                    </li> -->
+                    </li>
+                    <li class="nav-item hoverd">
+                        <a class="nav-link">
+                            <span class="lan-7">Distributer Wallet</span></a>
+                        <ul class="submenu">
+                            <li>
+                                <a href="{{route('distributer_wallets')}}">Top-up</a>
+                            </li>
+                            <li>
+                                <a href="{{route('wallet_approval')}}">Fund Transfers</a>
+                            </li>
+                            <li>
+                                <a href="{{route('wallet_auto_topup')}}">Auto Top-up (OD)</a>
+                            </li>
+                        </ul>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{route('report')}}">Report</a>
                     </li>

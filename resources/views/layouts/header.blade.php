@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HIFI FINTECH</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
     <link rel="stylesheet" href="{{asset('assets/css/dashboard.css')}}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{asset('assets/css/bootstrap.css')}}">
@@ -36,4 +37,35 @@
             </div>
         </div>
     </div>
-  
+    <section>
+        <div style="position: absolute; top: 70px; right: 10px;">  
+            <div role="alert" aria-live="assertive" aria-atomic="true" class="toast" id="t_pending">      
+                <div class="toast-header"> 
+                    <i class="bi bi-patch-question-fill fa-lg" style="padding:0px 5px 0px 0px"></i>
+                    <strong class="mr-auto">Pending</strong>
+                </div>
+                <div class="toast-body" id="t_pending_body">
+                </div>
+            </div>
+        </div>
+        <div style="position: absolute; top: 70px; right: 10px;">  
+            <div role="alert" aria-live="assertive" aria-atomic="true" class="toast" id="t_success">      
+                <div class="toast-header"> 
+                    <i class="bi bi-patch-check-fill fa-lg" style="padding:0px 5px 0px 0px"></i>
+                    <strong class="mr-auto">Success</strong>
+                </div>
+                <div class="toast-body" id="t_success_body" style="color:white;">
+                </div>
+            </div>
+        </div>
+        <div style="position: absolute; top: 70px; right: 10px;">  
+            <div role="alert" aria-live="assertive" aria-atomic="true" class="toast" id="t_failed">      
+                <div class="toast-header"> 
+                    <i class="bi bi-patch-exclamation-fill fa-lg" style="padding:0px 5px 0px 0px"></i>
+                    <strong class="mr-auto">Failed</strong>
+                </div>
+                <div class="toast-body" id="t_failed_body" style="color:white;">
+                </div>
+            </div>
+        </div>
+    </section>
