@@ -46,6 +46,7 @@ class IdentityController extends Controller
 
     public function curl_post($data){
         try{
+            // return $data;
             $curl = curl_init();
             $encodedKey = base64_encode($this->Authenticator_Key);
             $secret_key_timestamp = (int)(round(microtime(true) * 1000));
@@ -82,6 +83,7 @@ class IdentityController extends Controller
                 $response = $responses;
             }
             curl_close($curl);
+            return $response;
             return json_decode($response,true);
         }catch(\Throwable $e){
             return $e->getmessage();
@@ -96,7 +98,7 @@ class IdentityController extends Controller
             $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
             $secret_key = base64_encode($signature);
             curl_setopt_array($curl, array(
-                CURLOPT_URL =>  $this->Onboarding_URL.$data['url'],
+                CURLOPT_URL =>  $data['url'],
                 CURLOPT_SSL_VERIFYHOST => env("SSL_VERIFY"),
                 CURLOPT_SSL_VERIFYPEER => env("SSL_VERIFY"),
                 CURLOPT_RETURNTRANSFER => true,
@@ -112,6 +114,9 @@ class IdentityController extends Controller
                     'developer_key: '.$this->Developer_Key,
                     'secret-key:'.$secret_key,
                     'secret-key-timestamp:'.$secret_key_timestamp
+                    // "developer_key: becbbce45f79c6f5109f848acd540567",
+                    // "secret-key: MC6dKW278tBef+AuqL/5rW2K3WgOegF0ZHLW/FriZQw=",
+                    // "secret-key-timestamp: 1516705204593"
                 ),
             ));
             $responses = curl_exec($curl);
@@ -123,19 +128,133 @@ class IdentityController extends Controller
                 $response = $responses;
             }
             curl_close($curl);
+            return $response;
             return json_decode($response,true);
         }catch(\Throwable $e){
             return $e->getmessage();
         }        
     }
 
+    public function curl_get ($data) {
+        try{
+            // return $data;
+            $curl = curl_init();
+            $encodedKey = base64_encode($this->Authenticator_Key);
+            $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+            $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+            $secret_key = base64_encode($signature);
+            curl_setopt_array($curl, array(
+                CURLOPT_URL =>  $data['url'],
+                CURLOPT_SSL_VERIFYHOST => env("SSL_VERIFY"),
+                CURLOPT_SSL_VERIFYPEER => env("SSL_VERIFY"),
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_HEADER => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'GET',
+                CURLOPT_HTTPHEADER => array(
+                    'Content-Type: application/x-www-form-urlencoded',
+                    'developer_key: '.$this->Developer_Key,
+                    'secret-key:'.$secret_key,
+                    'secret-key-timestamp:'.$secret_key_timestamp
+                    // "developer_key: becbbce45f79c6f5109f848acd540567",
+                    // "secret-key: MC6dKW278tBef+AuqL/5rW2K3WgOegF0ZHLW/FriZQw=",
+                    // "secret-key-timestamp: 1516705204593"
+                ),
+            ));
+            $responses = curl_exec($curl);
+            $err = curl_error($curl);
+            $response = 'Something went wrong from sending values';
+            if ($err) {
+                $response = $err;
+            }else{
+                $response = $responses;
+            }
+            curl_close($curl);
+            return $response;
+            return json_decode($response,true);
+        }catch(\Throwable $e){
+            return $e->getmessage();
+        }        
+    }
+
+    public function Create_Customer(Request $request){
+        try{
+            if(empty($this->Base_URL)){
+                Artisan::call('config:clear');
+                return array("status"=>false,"message"=>"Try Again");
+            }
+            else{
+                $data = array(
+                    "url"=>$this->Base_URL.'customers/mobile_number:6383224535',
+                    "data"=>'initiator_id='.$this->Initiator_ID.'&name=Arun&user_code='.$this->admin_code.'&dob=1998-12-04&residence_address={"line": "Main Road","city":"Coimbatore","state":"Tamil Nadu","pincode":"641668","district":"Coimbatore","area":"Somanur"}&skip_verification=false'
+                );
+                $customer = $this->curl_put($data);
+                return $customer;
+            }
+        }
+        catch(\Throwable $e){
+            return array("status"=>false,"message"=>$e->getmessage());
+        }
+    }
+
+    public function Verify_Customer(Request $request){
+        try{
+            if(empty($this->Base_URL)){
+                Artisan::call('config:clear');
+                return array("status"=>false,"message"=>"Try Again");
+            }
+            else{
+                $data = array(
+                    "url"=>$this->Base_URL.'customers/verification/otp:123432',
+                    "data"=>'initiator_id='.$this->Initiator_ID.'&id_type=mobile_number&id=6383224535&otp_ref_id=d3e00033-ebd1-5492-a631-53f0dbf00d69&user_code=20810200&pipe=9'
+                );
+                $otp_verify = $this->curl_put($data);
+                return $otp_verify;
+            }
+        }
+        catch(\Throwable $e){
+            return array("status"=>false,"message"=>$e->getmessage());
+        }
+    }
+
+    public function Get_Customer(Request $request){
+        try{
+            if(empty($this->Base_URL)){
+                Artisan::call('config:clear');
+                return array("status"=>false,"message"=>"Try Again");
+            }
+            else{
+                $data = array(
+                    "url"=>$this->Base_URL.'customers/mobile_number:6383224535',
+                    
+                    // "url"=>$this->Base_URL.'customers/mobile_number:6383224535&initiator_id=9962981729&user_code=20810200',
+                    // "data"=>'initiator_id=9962981729&user_code=20810200'
+                    // "data"=>'customer_id_type=mobile_number&customer_id=6383224535&initiator_id='.$this->Initiator_ID.'&user_code='.$this->admin_code
+                );
+                // return $data;
+                $get_customer = $this->curl_get($data);
+                return $get_customer;
+            }
+        }
+        catch(\Throwable $e){
+            return array("status"=>false,"message"=>$e->getmessage());
+        }
+    }
+
     public function Bank_Account_Verification(Request $request){
         try{
+            if(empty($this->Access_Key)){
+                Artisan::call('config:clear');
+                return array("status"=>false,"message"=>"You are noted! Do not try again");
+            }
             if($this->Access_Key != $request->token){
                 $data = array(
-                    "type"=>'base_url',
-                    "url"=>'banks/ifsc:CNRB0003437/accounts/34371080015655',
-                    "data"=>'customer_id=7661109875&client_ref_id=AVS20181123194719311&user_code=20810200&initiator_id='.$this->Initiator_ID
+                    "url"=>$this->Base_URL.'banks/ifsc:CNRB/accounts/3437108001565',
+                    "data"=>'customer_id=6383224535&client_ref_id=HFS00012&user_code='.$this->admin_code.'&initiator_id='.$this->Initiator_ID
                 );
                 // return $data;
                 $Bank_Account_Verification = $this->curl_post($data);
