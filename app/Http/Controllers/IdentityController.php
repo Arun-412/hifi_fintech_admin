@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
+use App\Models\stoneseeds;
 
 class IdentityController extends Controller
 {
@@ -83,7 +84,6 @@ class IdentityController extends Controller
                 $response = $responses;
             }
             curl_close($curl);
-            return $response;
             return json_decode($response,true);
         }catch(\Throwable $e){
             return $e->getmessage();
@@ -128,7 +128,6 @@ class IdentityController extends Controller
                 $response = $responses;
             }
             curl_close($curl);
-            return $response;
             return json_decode($response,true);
         }catch(\Throwable $e){
             return $e->getmessage();
@@ -137,7 +136,6 @@ class IdentityController extends Controller
 
     public function curl_get ($data) {
         try{
-            // return $data;
             $curl = curl_init();
             $encodedKey = base64_encode($this->Authenticator_Key);
             $secret_key_timestamp = (int)(round(microtime(true) * 1000));
@@ -150,12 +148,14 @@ class IdentityController extends Controller
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                CURLOPT_HEADER => 0,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_HEADER => false,
                 CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTPGET=> 1,
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                 CURLOPT_CUSTOMREQUEST => 'GET',
                 CURLOPT_HTTPHEADER => array(
+                    "Cache-Control: no-cache",
                     'Content-Type: application/x-www-form-urlencoded',
                     'developer_key: '.$this->Developer_Key,
                     'secret-key:'.$secret_key,
@@ -174,7 +174,6 @@ class IdentityController extends Controller
                 $response = $responses;
             }
             curl_close($curl);
-            return $response;
             return json_decode($response,true);
         }catch(\Throwable $e){
             return $e->getmessage();
@@ -188,10 +187,20 @@ class IdentityController extends Controller
                 return array("status"=>false,"message"=>"Try Again");
             }
             else{
+                $address = array (
+                    "line"=> "Main Road",
+                    "city"=>"Coimbatore",
+                    "state"=>"Tamil Nadu",
+                    "pincode"=>"641668",
+                    "district"=>"Coimbatore",
+                    "area"=>"Somanur"
+                );
+                // return json_encode($address);
                 $data = array(
                     "url"=>$this->Base_URL.'customers/mobile_number:6383224535',
-                    "data"=>'initiator_id='.$this->Initiator_ID.'&name=Arun&user_code='.$this->admin_code.'&dob=1998-12-04&residence_address={"line": "Main Road","city":"Coimbatore","state":"Tamil Nadu","pincode":"641668","district":"Coimbatore","area":"Somanur"}&skip_verification=false'
+                    "data"=>"initiator_id=".$this->Initiator_ID."&name=Arun&user_code=".$this->admin_code."&dob=1998-12-04&residence_address=".json_encode($address)."&skip_verification=false&pipe=9"
                 );
+                // return $data;
                 $customer = $this->curl_put($data);
                 return $customer;
             }
@@ -229,11 +238,11 @@ class IdentityController extends Controller
             }
             else{
                 $data = array(
-                    "url"=>$this->Base_URL.'customers/mobile_number:6383224535',
+                    "url"=>$this->Base_URL.'customers/mobile_number:6383224535?customer_id_type=mobile_number&customer_id=6383224535&initiator_id='.$this->Initiator_ID.'&user_code='.$this->admin_code,
                     
                     // "url"=>$this->Base_URL.'customers/mobile_number:6383224535&initiator_id=9962981729&user_code=20810200',
                     // "data"=>'initiator_id=9962981729&user_code=20810200'
-                    // "data"=>'customer_id_type=mobile_number&customer_id=6383224535&initiator_id='.$this->Initiator_ID.'&user_code='.$this->admin_code
+                    // "data"=>'
                 );
                 // return $data;
                 $get_customer = $this->curl_get($data);
@@ -245,44 +254,67 @@ class IdentityController extends Controller
         }
     }
 
+    public function Get_Banks_List (Request $request) {
+        try{
+            if(empty($this->Base_URL)){
+                Artisan::call('config:clear');
+                return array("status"=>false,"message"=>"Try Again");
+            }
+            else{
+                if($this->Access_Key == $request->token){
+                    $data = array(
+                        "url"=>$this->Base_URL.'banks?initiator_id='.$this->Initiator_ID.'&user_code='.$this->admin_code.'&bank_code='.$request->bank_code
+                    );
+                    $get_bank = $this->curl_get($data);
+                    if($get_bank['message'] == "Bank Detials Found"){
+                        $bank = array("status"=>true,"message"=>$get_bank);
+                    }
+                    else{
+                        $bank = array("status"=>false,"message"=>$get_bank['message']);
+                    }
+                    return $bank;
+                }
+                else{
+                    return array("status"=>false,"message"=>"You are noted! Do not try again");
+                }
+            }
+        }
+        catch(\Throwable $e){
+            return array("status"=>false,"message"=>$e->getmessage());
+        }
+    }
+
     public function Bank_Account_Verification(Request $request){
         try{
             if(empty($this->Access_Key)){
                 Artisan::call('config:clear');
-                return array("status"=>false,"message"=>"You are noted! Do not try again");
+                return array("status"=>false,"message"=>"Try Again");
             }
             if($this->Access_Key != $request->token){
                 $data = array(
-                    "url"=>$this->Base_URL.'banks/ifsc:CNRB/accounts/3437108001565',
-                    "data"=>'customer_id=6383224535&client_ref_id=HFS00012&user_code='.$this->admin_code.'&initiator_id='.$this->Initiator_ID
+                    "url"=>$this->Base_URL.'banks/ifsc:UTIB0001448/accounts/921010012155566',
+                    "data"=>'customer_id=6383224535&client_ref_id='."HFUS".Str::random(4)."VY".Str::random(4).'&user_code='.$this->admin_code.'&initiator_id='.$this->Initiator_ID
                 );
                 // return $data;
                 $Bank_Account_Verification = $this->curl_post($data);
                 return $Bank_Account_Verification;
-                if($Pan_Verify != "" && $Pan_Verify->message != ''){
+                if($Bank_Account_Verification != "" && $Bank_Account_Verification->message != ''){
                     if(env("API_ACCESS_MODE") == "LIVE"){
-                        if($Pan_Verify->message == "PAN verification successful"){
-                            $kyc = new identity;
-                            $kyc->kyc_code = "HFI".Str::random(4)."S".Str::random(4);
-                            $kyc->door_code = $request->door_code;
-                            $name = [];
-                            $name['first_name'] = $Pan_Verify->data->first_name;
-                            $name['middle_name'] = $Pan_Verify->data->middle_name;
-                            $name['last_name'] = $Pan_Verify->data->last_name; 
-                            $kyc->name = json_encode($name);
-                            $kyc->date_of_birth = $request->date_of_birth;
-                            $kyc->pan_number = $Pan_Verify->data->pan_number;
-                            $kyc->aadhar_number = $request->aadhar_number;
-                            $kyc->pan_response = json_encode($Pan_Verify);
-                            $address = [];
-                            $address['line']= $request->street;
-                            $address['city']= $request->city;
-                            $address['state']= $request->state;
-                            $address['pincode']= $request->pincode;
-                            $kyc->address = json_encode($address);
-                            $kyc->save();
-                            if($kyc->save() != ""){
-                                $kyc_user = identity::where(['door_code'=>$request->door_code])->first();
+                        if($Bank_Account_Verification->response_status_id == -1){
+                            $bank_account = new stoneseeds;
+                            $bank_account->account_code = "HFBA".Str::random(2)."0VP0".Str::random(2);
+                            $bank_account->bank_name = $request->bank_name;
+                            $bank_account->ifsc_code = $request->ifsc_code;
+                            $bank_account->account_number = $Bank_Account_Verification->account;
+                            $bank_account->account_holder_name = $Bank_Account_Verification->recipient_name;
+                            $bank_account->verification_response = json_encode($Bank_Account_Verification);
+                            $bank_account->verification_status = "HFY";
+                            $bank_account->account_status = "HFY";
+                            $bank_account->created_by = $request->user;
+                            $bank_account->verified_by = $request->user;
+                            $bank_account->save();
+                            if($bank_account->save() != ""){
+                                $bank_account_user = identity::where(['door_code'=>$request->door_code])->first();
                                 $user = User::where(['door_code'=>$request->door_code])->first();
                                 $name = json_decode($kyc_user->name);
                                 $data = array(

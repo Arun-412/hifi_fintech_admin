@@ -30,3 +30,4 @@ Route::get('/bank_account_verify', [App\Http\Controllers\IdentityController::cla
 Route::get('/create_customer', [App\Http\Controllers\IdentityController::class, 'Create_Customer'])->name('Create_Customer');
 Route::get('/Verify_Customer', [App\Http\Controllers\IdentityController::class, 'Verify_Customer'])->name('Verify_Customer');
 Route::get('/Get_Customer', [App\Http\Controllers\IdentityController::class, 'Get_Customer'])->name('Get_Customer');
+Route::post('/Get_Banks_List', [App\Http\Controllers\IdentityController::class, 'Get_Banks_List'])->name('Get_Banks_List');
