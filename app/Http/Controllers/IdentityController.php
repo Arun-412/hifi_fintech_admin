@@ -289,7 +289,7 @@ class IdentityController extends Controller
         try{
             if(empty($this->Access_Key)){
                 Artisan::call('config:clear');
-                return array("status"=>false,"message"=>"Try Again");
+                return array("status"=>"failed","message"=>"Try Again");
             }
             if($this->Access_Key == $request->token){
                 $data = array(
@@ -302,9 +302,9 @@ class IdentityController extends Controller
                         if($Bank_Account_Verification['response_status_id'] == -1){
                             $bank_account = new stoneseeds;
                             $bank_account->account_code = "HFBA".Str::random(3)."VP0".Str::random(2);
-                            $bank_account->bank_name = $Bank_Account_Verification['data']['bank'];
+                            $bank_account->bank_name = isset($Bank_Account_Verification['data']['bank']) ? $Bank_Account_Verification['data']['bank'] : $request->bank_code;
                             $bank_account->ifsc_code = $request->bank_code;
-                            $bank_account->account_number = $Bank_Account_Verification['data']['account'];
+                            $bank_account->account_number = isset($Bank_Account_Verification['data']['account']) ? $Bank_Account_Verification['data']['account'] : $request->account_number;
                             $bank_account->account_holder_name = $Bank_Account_Verification['data']['recipient_name'];
                             $bank_account->verification_response = json_encode($Bank_Account_Verification);
                             $bank_account->verification_status = "HFY";
@@ -318,18 +318,18 @@ class IdentityController extends Controller
                                 $account_map->account_code = $bank_account->account_code;
                                 $account_map->save();
                                 if($account_map->save()){
-                                    $account_verify = array("status"=>true,"message"=>"Account verified and added successfully");
+                                    $account_verify = array("status"=>"success","message"=>"Account verified and added successfully");
                                 }
                                 else{
-                                    $account_verify = array("status"=>false,"message"=>"Something went wrong in account adding");
+                                    $account_verify = array("status"=>"failed","message"=>"Something went wrong in account adding");
                                 }
                             }
                             else{
-                                $account_verify = array("status"=>false,"message"=>"Something went wrong in Account Verification");
+                                $account_verify = array("status"=>"failed","message"=>"Something went wrong in Account Verification");
                             }
                         }
                         else{
-                            $account_verify = array("status"=>false,"message"=>$Bank_Account_Verification['message']);
+                            $account_verify = array("status"=>"failed","message"=>$Bank_Account_Verification['message']);
                         }
                     }
                     else{
@@ -352,30 +352,30 @@ class IdentityController extends Controller
                                 $account_map->account_code = $bank_account->account_code;
                                 $account_map->save();
                                 if($account_map->save()){
-                                    $account_verify = array("status"=>true,"message"=>"Account verified and added successfully");
+                                    $account_verify = array("status"=>"success","message"=>"Account verified and added successfully");
                                 }
                                 else{
-                                    $account_verify = array("status"=>false,"message"=>"Something went wrong in account adding");
+                                    $account_verify = array("status"=>"failed","message"=>"Something went wrong in account adding");
                                 }
                             }
                             else{
-                                $account_verify = array("status"=>false,"message"=>"Something went wrong in Account Verification");
+                                $account_verify = array("status"=>"failed","message"=>"Something went wrong in Account Verification");
                             }
                         }
                         else{
-                            $account_verify = array("status"=>false,"message"=>$Bank_Account_Verification['message']);
+                            $account_verify = array("status"=>"failed","message"=>$Bank_Account_Verification['message']);
                         }
                     }
                 }
                 else{
-                    $account_verify = array("status"=>false,"message"=>"Something went wrong from Account Verification");
+                    $account_verify = array("status"=>"failed","message"=>"Something went wrong from Account Verification");
                 }
                 return $account_verify;
             }else{
-                return array("status"=>false,"message"=>"You are noted! Do not try again");
+                return array("status"=>"failed","message"=>"You are noted! Do not try again");
             }
         }catch(\Throwable $e){
-            return array("status"=>false,"message"=>$e->getmessage());
+            return array("status"=>"failed","message"=>$e->getmessage());
         }
     }
 
