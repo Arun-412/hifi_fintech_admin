@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use App\Models\stoneseeds;
+use App\Models\sandstone;
 
 class IdentityController extends Controller
 {
@@ -198,7 +199,7 @@ class IdentityController extends Controller
                 // return json_encode($address);
                 $data = array(
                     "url"=>$this->Base_URL.'customers/mobile_number:6383224535',
-                    "data"=>"initiator_id=".$this->Initiator_ID."&name=Arun&user_code=".$this->admin_code."&dob=1998-12-04&residence_address=".json_encode($address)."&skip_verification=false&pipe=9"
+                    "data"=>"initiator_id=".$this->Initiator_ID."&name=Arun&user_code=".$this->admin_code."&dob=1998-12-04&residence_address=".json_encode($address)."&skip_verification=true"
                 );
                 // return $data;
                 $customer = $this->curl_put($data);
@@ -290,129 +291,86 @@ class IdentityController extends Controller
                 Artisan::call('config:clear');
                 return array("status"=>false,"message"=>"Try Again");
             }
-            if($this->Access_Key != $request->token){
+            if($this->Access_Key == $request->token){
                 $data = array(
-                    "url"=>$this->Base_URL.'banks/ifsc:UTIB0001448/accounts/921010012155566',
-                    "data"=>'customer_id=6383224535&client_ref_id='."HFUS".Str::random(4)."VY".Str::random(4).'&user_code='.$this->admin_code.'&initiator_id='.$this->Initiator_ID
+                    "url"=>$this->Base_URL.'banks/bank_code:'.$request->bank_code.'/accounts/'.$request->account_number,
+                    "data"=>'customer_id='.$request->customer_id.'&client_ref_id='."HFUS".mt_rand(1000000, 9999999)."VY".Str::random(4).'&user_code='.$this->admin_code.'&initiator_id='.$this->Initiator_ID
                 );
-                // return $data;
                 $Bank_Account_Verification = $this->curl_post($data);
-                return $Bank_Account_Verification;
-                if($Bank_Account_Verification != "" && $Bank_Account_Verification->message != ''){
-                    if(env("API_ACCESS_MODE") == "LIVE"){
-                        if($Bank_Account_Verification->response_status_id == -1){
+                if($Bank_Account_Verification != "" && $Bank_Account_Verification['message'] != ''){
+                    if(env("EKO_MODE") == "LIVE"){
+                        if($Bank_Account_Verification['response_status_id'] == -1){
                             $bank_account = new stoneseeds;
-                            $bank_account->account_code = "HFBA".Str::random(2)."0VP0".Str::random(2);
-                            $bank_account->bank_name = $request->bank_name;
-                            $bank_account->ifsc_code = $request->ifsc_code;
-                            $bank_account->account_number = $Bank_Account_Verification->account;
-                            $bank_account->account_holder_name = $Bank_Account_Verification->recipient_name;
+                            $bank_account->account_code = "HFBA".Str::random(3)."VP0".Str::random(2);
+                            $bank_account->bank_name = $Bank_Account_Verification['data']['bank'];
+                            $bank_account->ifsc_code = $request->bank_code;
+                            $bank_account->account_number = $Bank_Account_Verification['data']['account'];
+                            $bank_account->account_holder_name = $Bank_Account_Verification['data']['recipient_name'];
                             $bank_account->verification_response = json_encode($Bank_Account_Verification);
                             $bank_account->verification_status = "HFY";
                             $bank_account->account_status = "HFY";
                             $bank_account->created_by = $request->user;
                             $bank_account->verified_by = $request->user;
                             $bank_account->save();
-                            if($bank_account->save() != ""){
-                                $bank_account_user = identity::where(['door_code'=>$request->door_code])->first();
-                                $user = User::where(['door_code'=>$request->door_code])->first();
-                                $name = json_decode($kyc_user->name);
-                                $data = array(
-                                    "url"=>'user/onboard',
-                                    "data"=>"initiator_id=".$this->Initiator_ID."&pan_number=CCAPA9739C&mobile=".$user->mobile_number."&first_name=".$name->first_name."&last_name=".$name->last_name."&email=".$user->email."&residence_address=".$kyc_user->address."&dob=".$kyc_user->date_of_birth."&shop_name=".$user->shop_name,
-                                );
-                                $user_onboard = $this->curl_put($data);
-                                if($user_onboard->message == "User onboarding successfull"){
-                                    $provider = [];
-                                    $provider['eko'] = $user_onboard->data->user_code;
-                                    $user->provider_status = json_encode($provider);
-                                    $provider_response = [];
-                                    $provider_response['eko'] = $user_onboard;
-                                    $user->provider_response = json_encode($provider_response);
-                                    $user->kyc_status = "HFY";
-                                    $user->save();
-                                    if($user->save()){
-                                        $Pan_Verify = array("status"=>true,"message"=>"KYC Completed successfully");
-                                    }
-                                    else{
-                                        $Pan_Verify = array("status"=>false,"message"=>"Something went wrong in completing KYC");
-                                    }
+                            if($bank_account->save()){
+                                $account_map = new sandstone;
+                                $account_map->user_code = $request->customer;
+                                $account_map->account_code = $bank_account->account_code;
+                                $account_map->save();
+                                if($account_map->save()){
+                                    $account_verify = array("status"=>true,"message"=>"Account verified and added successfully");
                                 }
                                 else{
-                                    $Pan_Verify = array("status"=>false,"message"=>$user_onboard->message);
+                                    $account_verify = array("status"=>false,"message"=>"Something went wrong in account adding");
                                 }
                             }
                             else{
-                                $Pan_Verify = array("status"=>false,"message"=>"Something went wrong in PAN Verification");
+                                $account_verify = array("status"=>false,"message"=>"Something went wrong in Account Verification");
                             }
                         }
                         else{
-                            $Pan_Verify = array("status"=>false,"message"=>$Pan_Verify->message);
+                            $account_verify = array("status"=>false,"message"=>$Bank_Account_Verification['message']);
                         }
                     }
                     else{
-                        if($Pan_Verify->message == "Customer not allowed"){
-                            $kyc = new identity;
-                            $kyc->kyc_code = "HFI".Str::random(4)."S".Str::random(4);
-                            $kyc->door_code = $request->door_code;
-                            $name = [];
-                            $name['first_name'] = "HIFI";
-                            $name['middle_name'] = "FINTECH";
-                            $name['last_name'] = "USER"; 
-                            $kyc->name = json_encode($name);
-                            $kyc->date_of_birth = $request->date_of_birth;
-                            $kyc->pan_number = $request->pan;
-                            $kyc->aadhar_number = $request->aadhar_number;
-                            $kyc->pan_response = json_encode($Pan_Verify);
-                            $address = [];
-                            $address['line']= $request->street;
-                            $address['city']= $request->city;
-                            $address['state']= $request->state;
-                            $address['pincode']= $request->pincode;
-                            $kyc->address = json_encode($address);
-                            $kyc->save();
-                            if($kyc->save() != ""){
-                                $kyc_user = identity::where(['door_code'=>$request->door_code])->first();
-                                $user = User::where(['door_code'=>$request->door_code])->first();
-                                $name = json_decode($kyc_user->name);
-                                $data = array(
-                                    "url"=>'user/onboard',
-                                    "data"=>"initiator_id=".$this->Initiator_ID."&pan_number=CCAPA9739C&mobile=".$user->mobile_number."&first_name=".$name->first_name."&last_name=".$name->last_name."&email=".$user->email."&residence_address=".$kyc_user->address."&dob=".$kyc_user->date_of_birth."&shop_name=".$user->shop_name,
-                                );
-                                $user_onboard = $this->curl_put($data);
-                                if($user_onboard->message == "PAN verification fail"){
-                                    $provider = [];
-                                    $provider['eko'] = 22123212;
-                                    $user->provider_status = json_encode($provider);
-                                    $provider_response = [];
-                                    $provider_response['eko'] = $user_onboard;
-                                    $user->provider_response = json_encode($provider_response);
-                                    $user->kyc_status = "HFY";
-                                    $user->save();
-                                    if($user->save()){
-                                        $Pan_Verify = array("status"=>true,"message"=>"KYC Completed successfully");
-                                    }
-                                    else{
-                                        $Pan_Verify = array("status"=>false,"message"=>"Something went wrong in completing KYC");
-                                    }
+                        if($Bank_Account_Verification['response_status_id'] != 1){
+                            $bank_account = new stoneseeds;
+                            $bank_account->account_code = "HFBA".Str::random(2)."0VP0".Str::random(2);
+                            $bank_account->bank_name = $request->bank_code;
+                            $bank_account->ifsc_code = $request->bank_code;
+                            $bank_account->account_number = $request->account_number;
+                            $bank_account->account_holder_name = $Bank_Account_Verification['data']['recipient_name'];
+                            $bank_account->verification_response = json_encode($Bank_Account_Verification);
+                            $bank_account->verification_status = "HFY";
+                            $bank_account->account_status = "HFY";
+                            $bank_account->created_by = $request->user;
+                            $bank_account->verified_by = $request->user;
+                            $bank_account->save();
+                            if($bank_account->save()){
+                                $account_map = new sandstone;
+                                $account_map->user_code = $request->customer;
+                                $account_map->account_code = $bank_account->account_code;
+                                $account_map->save();
+                                if($account_map->save()){
+                                    $account_verify = array("status"=>true,"message"=>"Account verified and added successfully");
                                 }
                                 else{
-                                    $Pan_Verify = array("status"=>false,"message"=>$user_onboard->message);
+                                    $account_verify = array("status"=>false,"message"=>"Something went wrong in account adding");
                                 }
                             }
                             else{
-                                $Pan_Verify = array("status"=>false,"message"=>"Something went wrong in PAN Verification");
+                                $account_verify = array("status"=>false,"message"=>"Something went wrong in Account Verification");
                             }
                         }
                         else{
-                            $Pan_Verify = array("status"=>false,"message"=>$Pan_Verify->message);
+                            $account_verify = array("status"=>false,"message"=>$Bank_Account_Verification['message']);
                         }
                     }
                 }
                 else{
-                    $Pan_Verify = array("status"=>false,"message"=>"Something went wrong from PAN");
+                    $account_verify = array("status"=>false,"message"=>"Something went wrong from Account Verification");
                 }
-                return $Pan_Verify;
+                return $account_verify;
             }else{
                 return array("status"=>false,"message"=>"You are noted! Do not try again");
             }

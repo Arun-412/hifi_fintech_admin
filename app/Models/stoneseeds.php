@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class stoneseeds extends Model
 {
     use HasFactory;
+    protected $table = 'stoneseeds';
     protected $fillable = [
         'account_code',
         'bank_name',

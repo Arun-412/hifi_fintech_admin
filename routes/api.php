@@ -26,7 +26,7 @@ Route::group(['prefix' => 'payout'], function () {
     Route::post('/activate_service', [App\Http\Controllers\EkoController::class, 'activate_service'])->name('activate_service');
 });
 
-Route::get('/bank_account_verify', [App\Http\Controllers\IdentityController::class, 'Bank_Account_Verification'])->name('bank_account_verify');
+Route::post('/bank_account_verify', [App\Http\Controllers\IdentityController::class, 'Bank_Account_Verification'])->name('bank_account_verify');
 Route::get('/create_customer', [App\Http\Controllers\IdentityController::class, 'Create_Customer'])->name('Create_Customer');
 Route::get('/Verify_Customer', [App\Http\Controllers\IdentityController::class, 'Verify_Customer'])->name('Verify_Customer');
 Route::get('/Get_Customer', [App\Http\Controllers\IdentityController::class, 'Get_Customer'])->name('Get_Customer');
