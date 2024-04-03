@@ -196,13 +196,17 @@ class IdentityController extends Controller
                     "district"=>"Coimbatore",
                     "area"=>"Somanur"
                 );
-                // return json_encode($address);
                 $data = array(
-                    "url"=>$this->Base_URL.'customers/mobile_number:6383224535',
+                    "url"=>$this->Base_URL.'customers/mobile_number:'.$request->mobile,
                     "data"=>"initiator_id=".$this->Initiator_ID."&name=Arun&user_code=".$this->admin_code."&dob=1998-12-04&residence_address=".json_encode($address)."&skip_verification=true"
                 );
-                // return $data;
                 $customer = $this->curl_put($data);
+                if($customer['message'] == "Wallet opened successfully."){
+                    return array("status"=>true,"message"=>$customer['message']);
+                }
+                else{
+                    return array("status"=>false,"message"=>$customer['message']);
+                }
                 return $customer;
             }
         }
