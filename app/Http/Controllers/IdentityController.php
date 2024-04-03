@@ -207,7 +207,6 @@ class IdentityController extends Controller
                 else{
                     return array("status"=>false,"message"=>$customer['message']);
                 }
-                return $customer;
             }
         }
         catch(\Throwable $e){
@@ -243,7 +242,7 @@ class IdentityController extends Controller
             }
             else{
                 $data = array(
-                    "url"=>$this->Base_URL.'customers/mobile_number:6383224535?customer_id_type=mobile_number&customer_id=6383224535&initiator_id='.$this->Initiator_ID.'&user_code='.$this->admin_code,
+                    "url"=>$this->Base_URL.'customers/mobile_number:9952199550?customer_id_type=mobile_number&customer_id=9952199550&initiator_id='.$this->Initiator_ID.'&user_code='.$this->admin_code,
                     
                     // "url"=>$this->Base_URL.'customers/mobile_number:6383224535&initiator_id=9962981729&user_code=20810200',
                     // "data"=>'initiator_id=9962981729&user_code=20810200'
