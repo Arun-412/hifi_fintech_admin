@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\eko;
+use App\Models\sand;
+use App\Models\sand_log;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 
 class EkoController extends Controller
 {
@@ -88,7 +91,7 @@ class EkoController extends Controller
     public function activate_service(Request $request){
         try{
             if($this->Access_Key == $request->token){
-                if(env("API_ACCESS_MODE") == "LIVE"){
+                if(env("EKO_MODE") == "LIVE"){
                     $data = array(
                         "url"=>$this->Onboarding_URL.'user/service/activate',
                         "data"=>'service_code='.$request->service_code.'&initiator_id='.$this->Initiator_ID.'&user_code='.$request->user_code
@@ -114,6 +117,125 @@ class EkoController extends Controller
                         return array("status"=>false,"message"=>"Something went wrong in activate service");
                     }
                 }
+            }else{
+                return array("status"=>false,"message"=>"You are noted! Do not try again");
+            }
+        }catch(\Throwable $e){
+            return array("status"=>false,"message"=>$e->getmessage());
+        }
+    }
+
+    public function curl_post($data){
+        try{
+            // return $data;
+            $curl = curl_init();
+            $encodedKey = base64_encode($this->Authenticator_Key);
+            $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+            $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+            $secret_key = base64_encode($signature);
+            curl_setopt_array($curl, array(
+                CURLOPT_SSL_VERIFYHOST => env("SSL_VERIFY"),
+                CURLOPT_SSL_VERIFYPEER => env("SSL_VERIFY"),
+                CURLOPT_URL => $data['url'],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => $data['data'],
+                CURLOPT_HTTPHEADER => array(
+                    'Content-Type: application/x-www-form-urlencoded',
+                    'developer_key: '.$this->Developer_Key,
+                    'secret-key:'.$secret_key,
+                    'secret-key-timestamp:'.$secret_key_timestamp
+                ),
+            ));
+            $responses = curl_exec($curl);
+            $err = curl_error($curl);
+            $response = 'Something went wrong from sending values';
+            if ($err) {
+                $response = $err;
+            }else{
+                $response = $responses;
+            }
+            curl_close($curl);
+            return json_decode($response,true);
+        }catch(\Throwable $e){
+            return $e->getmessage();
+        }
+    }
+
+    public function payout_transaction(Request $request) {
+        try{
+            if(empty($this->Access_Key)){
+                Artisan::call('config:clear');
+                return array("status"=>"failed","message"=>"Try Again");
+            }
+            if($this->Access_Key != $request->token){
+                $data = array(
+                    "url"=>$this->Onboarding_URL."agent/user_code:".$this->admin_code."/settlement",
+                    "data"=>"initiator_id=".$this->Initiator_ID."&amount=10000&payment_mode=5&client_ref_id=HFPYOT110424032401&recipient_name=Arunmozhi&ifsc=CNRB0003437&account=3437108001565&service_code=45&sender_name=NAMVSOFTECH&tag=HIFI_FINTECH&beneficiary_account_type=1"
+                );
+                $transaction = $this->curl_post($data);
+                // return $transaction;
+                if($transaction != "" && isset($transaction['message']) != ''){
+                    if(isset($transaction['invalid_params']) !=''){
+                        $transction_res = array("status"=>"failed","message"=>$transaction['message']);
+                    }
+                    else if(empty($transaction['data']['tx_status']) && $transaction['message']) {
+                        $transction_res = array("status"=>"failed","message"=>$transaction['message']);
+                    }
+                    else if(env("EKO_MODE") == "LIVE"){
+                        if($transaction['data']['tx_status'] == 1){ // failed
+                            $records = new sand_log;
+                            $records->sandt_id = $transaction['data']['bank_ref_num'];
+                            $records->sand_status = $transaction['data']['tx_status'];
+                            $records->sand_name = $transaction['data']['recipient_name'];
+                            $records->sand_account = $transaction['data']['account'];
+                            $records->sand_amount = $transaction['data']['amount'];
+                            $records->sand_fees = $transaction['data']['totalfee'];
+                            $records->created_by = "Arun";
+                            $records->sand_response = json_encode($transaction);
+                            $records->save();
+                            if($records->save()){
+                                $transction_res = array("status"=>"success","message"=>$transaction['message']);
+                            }
+                            else{
+                                $transction_res = array("status"=>"failed","message"=>"Something went wrong from transaction records");
+                            }
+                        }
+                        else if($transaction['data']['tx_status'] != 1){
+                            $record = new sand;
+                            $record->sandt_id = $transaction['data']['bank_ref_num'];
+                            $record->sand_name = $transaction['data']['recipient_name'];
+                            $record->sand_status = $transaction['data']['tx_status'];
+                            $record->sand_account = $transaction['data']['account'];
+                            $record->sand_amount = $transaction['data']['amount'];
+                            $record->sand_fees = $transaction['data']['totalfee'];
+                            $record->created_by = "Arun";
+                            $record->sand_response = json_encode($transaction);
+                            $record->save();
+                            if($record->save()){
+                                $transction_res = array("status"=>"success","message"=>$transaction['message']);
+                            }
+                            else{
+                                $transction_res = array("status"=>"failed","message"=>"Something went wrong from transaction records");
+                            }
+                        }
+                        else{
+                            $transction_res = array("status"=>"success","message"=>$transaction['message']);
+                        }
+                    }
+                    else{
+                        $transction_res = array("status"=>"success","message"=>"test transaction"); 
+                    }
+                }
+                else{
+                    $transction_res = array("status"=>"failed","message"=>"Something went wrong from transaction");
+                }
+                return $transction_res;
             }else{
                 return array("status"=>false,"message"=>"You are noted! Do not try again");
             }

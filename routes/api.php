@@ -24,6 +24,7 @@ Route::group(['prefix' => 'kyc'], function () {
 
 Route::group(['prefix' => 'payout'], function () {   
     Route::post('/activate_service', [App\Http\Controllers\EkoController::class, 'activate_service'])->name('activate_service');
+    Route::post('/transaction',[App\Http\Controllers\EkoController::class, 'payout_transaction'])->name('payout_transaction');
 });
 
 Route::post('/bank_account_verify', [App\Http\Controllers\IdentityController::class, 'Bank_Account_Verification'])->name('bank_account_verify');
