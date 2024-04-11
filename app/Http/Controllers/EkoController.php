@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\eko;
 use App\Models\sand;
 use App\Models\sand_log;
+use App\Models\stoneseeds;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -174,66 +175,76 @@ class EkoController extends Controller
                 return array("status"=>"failed","message"=>"Try Again");
             }
             if($this->Access_Key == $request->token){
-                $data = array(
-                    "url"=>$this->Onboarding_URL."agent/user_code:".$this->admin_code."/settlement",
-                    "data"=>"initiator_id=".$this->Initiator_ID."&amount=".$request->transaction_amount."&payment_mode=".$request->tranaction_mode."&client_ref_id=HFPYOT".date('YmdHis')."&recipient_name=Arunmozhi&ifsc=CNRB0003437&account=3437108001565&service_code=45&sender_name=".$request->send_by."&tag=HIFI_FINTECH&beneficiary_account_type=1"
-                );
-                $transaction = $this->curl_post($data);
-                // return $transaction;
-                if($transaction != "" && isset($transaction['message']) != ''){
-                    if(isset($transaction['invalid_params']) !=''){
-                        $transction_res = array("status"=>"failed","message"=>$transaction['message']);
-                    }
-                    else if(isset($transaction['data']['tx_status']) == "" && $transaction['message']) {
-                        $transction_res = array("status"=>"failed","message"=>$transaction['message']);
-                    }
-                    else if(env("EKO_MODE") == "LIVE"){
-                        if($transaction['data']['tx_status'] == 1){ // failed
-                            $records = new sand_log;
-                            $records->sandt_id = $transaction['data']['bank_ref_num'];
-                            $records->sand_status = $transaction['data']['tx_status'];
-                            $records->sand_name = $transaction['data']['recipient_name'];
-                            $records->sand_account = $transaction['data']['account'];
-                            $records->sand_amount = $transaction['data']['amount'];
-                            $records->sand_fees = $transaction['data']['totalfee'];
-                            $records->created_by = $request->user;
-                            $records->sand_response = json_encode($transaction);
-                            $records->save();
-                            if($records->save()){
-                                $transction_res = array("status"=>"success","message"=>$transaction['message']);
+                if($request->account_id){
+                    if(stoneseeds::where(['account_code'=>$request->account_id])->exists()){
+                        $account = stoneseeds::where(['account_code'=>$request->account_id])->first();
+                        $data = array(
+                            "url"=>$this->Onboarding_URL."agent/user_code:".$this->admin_code."/settlement",
+                            "data"=>"initiator_id=".$this->Initiator_ID."&amount=".$request->transaction_amount."&payment_mode=".$request->tranaction_mode."&client_ref_id=HFPYOT".date('YmdHis')."&recipient_name=".$account->account_holder_name."&ifsc=".$account->ifsc_code."&account=".$account->account_number."&service_code=45&sender_name=".$request->send_by."&tag=HIFI_FINTECH&beneficiary_account_type=1"
+                        );
+                        $transaction = $this->curl_post($data);
+                        if($transaction != "" && isset($transaction['message']) != ''){
+                            if(isset($transaction['invalid_params']) !=''){
+                                $transction_res = array("status"=>"failed","message"=>$transaction['message']);
+                            }
+                            else if(isset($transaction['data']['tx_status']) == "" && $transaction['message']) {
+                                $transction_res = array("status"=>"failed","message"=>$transaction['message']);
+                            }
+                            else if(env("EKO_MODE") == "LIVE"){
+                                if($transaction['data']['tx_status'] == 1){ // failed
+                                    $records = new sand_log;
+                                    $records->sandt_id = $transaction['data']['bank_ref_num'];
+                                    $records->sand_status = $transaction['data']['tx_status'];
+                                    $records->sand_name = $transaction['data']['recipient_name'];
+                                    $records->sand_account = $transaction['data']['account'];
+                                    $records->sand_amount = $transaction['data']['amount'];
+                                    $records->sand_fees = $transaction['data']['totalfee'];
+                                    $records->created_by = $request->user;
+                                    $records->sand_response = json_encode($transaction);
+                                    $records->save();
+                                    if($records->save()){
+                                        $transction_res = array("status"=>"success","message"=>$transaction['message']);
+                                    }
+                                    else{
+                                        $transction_res = array("status"=>"failed","message"=>"Something went wrong from transaction records");
+                                    }
+                                }
+                                else if($transaction['data']['tx_status'] != 1){
+                                    $record = new sand;
+                                    $record->sandt_id = $transaction['data']['bank_ref_num'];
+                                    $record->sand_name = $transaction['data']['recipient_name'];
+                                    $record->sand_status = $transaction['data']['tx_status'];
+                                    $record->sand_account = $transaction['data']['account'];
+                                    $record->sand_amount = $transaction['data']['amount'];
+                                    $record->sand_fees = $transaction['data']['totalfee'];
+                                    $record->created_by = $request->user;
+                                    $record->sand_response = json_encode($transaction);
+                                    $record->save();
+                                    if($record->save()){
+                                        $transction_res = array("status"=>"success","message"=>$transaction['message']);
+                                    }
+                                    else{
+                                        $transction_res = array("status"=>"failed","message"=>"Something went wrong from transaction records");
+                                    }
+                                }
+                                else{
+                                    $transction_res = array("status"=>"success","message"=>$transaction['message']);
+                                }
                             }
                             else{
-                                $transction_res = array("status"=>"failed","message"=>"Something went wrong from transaction records");
-                            }
-                        }
-                        else if($transaction['data']['tx_status'] != 1){
-                            $record = new sand;
-                            $record->sandt_id = $transaction['data']['bank_ref_num'];
-                            $record->sand_name = $transaction['data']['recipient_name'];
-                            $record->sand_status = $transaction['data']['tx_status'];
-                            $record->sand_account = $transaction['data']['account'];
-                            $record->sand_amount = $transaction['data']['amount'];
-                            $record->sand_fees = $transaction['data']['totalfee'];
-                            $record->created_by = $request->user;
-                            $record->sand_response = json_encode($transaction);
-                            $record->save();
-                            if($record->save()){
-                                $transction_res = array("status"=>"success","message"=>$transaction['message']);
-                            }
-                            else{
-                                $transction_res = array("status"=>"failed","message"=>"Something went wrong from transaction records");
+                                $transction_res = array("status"=>"success","message"=>"test transaction"); 
                             }
                         }
                         else{
-                            $transction_res = array("status"=>"success","message"=>$transaction['message']);
+                            $transction_res = array("status"=>"failed","message"=>"Something went wrong from transaction");
                         }
                     }
                     else{
-                        $transction_res = array("status"=>"success","message"=>"test transaction"); 
+                        $transction_res = array("status"=>"failed","message"=>"Something went wrong from account details transaction");
                     }
                 }
                 else{
-                    $transction_res = array("status"=>"failed","message"=>"Something went wrong from transaction");
+                    $transction_res = array("status"=>"failed","message"=>"Something went wrong from account details");
                 }
                 return $transction_res;
             }else{
