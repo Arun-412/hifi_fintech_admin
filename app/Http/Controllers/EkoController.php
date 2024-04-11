@@ -173,10 +173,10 @@ class EkoController extends Controller
                 Artisan::call('config:clear');
                 return array("status"=>"failed","message"=>"Try Again");
             }
-            if($this->Access_Key != $request->token){
+            if($this->Access_Key == $request->token){
                 $data = array(
                     "url"=>$this->Onboarding_URL."agent/user_code:".$this->admin_code."/settlement",
-                    "data"=>"initiator_id=".$this->Initiator_ID."&amount=10000&payment_mode=5&client_ref_id=HFPYOT110424032401&recipient_name=Arunmozhi&ifsc=CNRB0003437&account=3437108001565&service_code=45&sender_name=NAMVSOFTECH&tag=HIFI_FINTECH&beneficiary_account_type=1"
+                    "data"=>"initiator_id=".$this->Initiator_ID."&amount=".$request->transaction_amount."&payment_mode=".$request->tranaction_mode."&client_ref_id=HFPYOT".date('YmdHis')."&recipient_name=Arunmozhi&ifsc=CNRB0003437&account=3437108001565&service_code=45&sender_name=".$request->send_by."&tag=HIFI_FINTECH&beneficiary_account_type=1"
                 );
                 $transaction = $this->curl_post($data);
                 // return $transaction;
@@ -184,7 +184,7 @@ class EkoController extends Controller
                     if(isset($transaction['invalid_params']) !=''){
                         $transction_res = array("status"=>"failed","message"=>$transaction['message']);
                     }
-                    else if(empty($transaction['data']['tx_status']) && $transaction['message']) {
+                    else if(isset($transaction['data']['tx_status']) == "" && $transaction['message']) {
                         $transction_res = array("status"=>"failed","message"=>$transaction['message']);
                     }
                     else if(env("EKO_MODE") == "LIVE"){
@@ -196,7 +196,7 @@ class EkoController extends Controller
                             $records->sand_account = $transaction['data']['account'];
                             $records->sand_amount = $transaction['data']['amount'];
                             $records->sand_fees = $transaction['data']['totalfee'];
-                            $records->created_by = "Arun";
+                            $records->created_by = $request->user;
                             $records->sand_response = json_encode($transaction);
                             $records->save();
                             if($records->save()){
@@ -214,7 +214,7 @@ class EkoController extends Controller
                             $record->sand_account = $transaction['data']['account'];
                             $record->sand_amount = $transaction['data']['amount'];
                             $record->sand_fees = $transaction['data']['totalfee'];
-                            $record->created_by = "Arun";
+                            $record->created_by = $request->user;
                             $record->sand_response = json_encode($transaction);
                             $record->save();
                             if($record->save()){
