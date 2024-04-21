@@ -12,14 +12,20 @@ class sand_log extends Model
     protected $fillable = [
         'sandt_id',
         'sand_status',
+        'sandt_mode',
         'sand_name',
         'sand_account',
+        'sand_amount',
         'sand_fees',
+        'sandt_user',
         'created_by',
         'sand_response',
         'created_at',
         'updated_at'
     ];
-    protected $hidden = [];
+    protected $hidden = [
+        'sand_id',
+        'updated_at'
+    ];
     protected $casts = [];
 }

@@ -6,9 +6,12 @@ use App\Models\eko;
 use App\Models\sand;
 use App\Models\sand_log;
 use App\Models\stoneseeds;
+use App\Models\sandstone;
+use App\Models\transactional_user;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Carbon\Carbon;
 
 class EkoController extends Controller
 {
@@ -178,6 +181,8 @@ class EkoController extends Controller
                 if($request->account_id){
                     if(stoneseeds::where(['account_code'=>$request->account_id])->exists()){
                         $account = stoneseeds::where(['account_code'=>$request->account_id])->first();
+                        $sand_user = sandstone::where(['account_code'=>$request->account_id])->first();
+                        $t_user = transactional_user::where(['user_code'=>$sand_user->user_code])->first();
                         $data = array(
                             "url"=>$this->Onboarding_URL."agent/user_code:".$this->admin_code."/settlement",
                             "data"=>"initiator_id=".$this->Initiator_ID."&amount=".$request->transaction_amount."&payment_mode=".$request->tranaction_mode."&client_ref_id=HFPYOT".date('YmdHis')."&recipient_name=".$account->account_holder_name."&ifsc=".$account->ifsc_code."&account=".$account->account_number."&service_code=45&sender_name=".$request->send_by."&tag=HIFI_FINTECH&beneficiary_account_type=1"
@@ -194,13 +199,17 @@ class EkoController extends Controller
                                 if($transaction['data']['tx_status'] == 1){ // failed
                                     $records = new sand_log;
                                     $records->sandt_id = $transaction['data']['bank_ref_num'];
-                                    $records->sand_status = $transaction['data']['tx_status'];
+                                    $records->sand_status = $transaction['data']['txstatus_desc'];
+                                    $records->bank_name = $account->bank_name;
+                                    $records->sandt_mode = $request->tranaction_mode == 5 ? "IMPS" : "NEFT";
                                     $records->sand_name = $transaction['data']['recipient_name'];
                                     $records->sand_account = $transaction['data']['account'];
                                     $records->sand_amount = $transaction['data']['amount'];
                                     $records->sand_fees = $transaction['data']['totalfee'];
                                     $records->created_by = $request->user;
+                                    $records->sandt_user = $t_user->mobile_number;
                                     $records->sand_response = json_encode($transaction);
+                                    $records->date_time = Carbon::now()->format("d-m-Y h:i:s A");
                                     $records->save();
                                     if($records->save()){
                                         $transction_res = array("status"=>"success","message"=>$transaction['message']);
@@ -213,22 +222,26 @@ class EkoController extends Controller
                                     $record = new sand;
                                     $record->sandt_id = $transaction['data']['bank_ref_num'];
                                     $record->sand_name = $transaction['data']['recipient_name'];
-                                    $record->sand_status = $transaction['data']['tx_status'];
+                                    $record->sand_status = $transaction['data']['txstatus_desc'];
+                                    $record->bank_name = $account->bank_name;
+                                    $record->sandt_mode = $request->tranaction_mode == 5 ? "IMPS" : "NEFT";
                                     $record->sand_account = $transaction['data']['account'];
                                     $record->sand_amount = $transaction['data']['amount'];
                                     $record->sand_fees = $transaction['data']['totalfee'];
+                                    $record->sandt_user = $t_user->mobile_number;
                                     $record->created_by = $request->user;
                                     $record->sand_response = json_encode($transaction);
+                                    $record->date_time = Carbon::now()->format("d-m-Y h:i:s A");
                                     $record->save();
                                     if($record->save()){
-                                        $transction_res = array("status"=>"success","message"=>$transaction['message']);
+                                        $transction_res = array("status"=>"success","t_id"=>$record->sandt_id,"message"=>$transaction['message']);
                                     }
                                     else{
                                         $transction_res = array("status"=>"failed","message"=>"Something went wrong from transaction records");
                                     }
                                 }
                                 else{
-                                    $transction_res = array("status"=>"success","message"=>$transaction['message']);
+                                    $transction_res = array("status"=>"failed","message"=>$transaction['message']);
                                 }
                             }
                             else{
