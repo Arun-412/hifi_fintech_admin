@@ -209,7 +209,7 @@ class EkoController extends Controller
                                     $records->created_by = $request->user;
                                     $records->sandt_user = $t_user->mobile_number;
                                     $records->sand_response = json_encode($transaction);
-                                    $records->date_time = Carbon::now()->format("d-m-Y h:i:s A");
+                                    $records->date_time = Carbon::now()->format("d-m-Y | h:i:s A");
                                     $records->save();
                                     if($records->save()){
                                         $transction_res = array("status"=>"success","message"=>$transaction['message']);
@@ -231,7 +231,7 @@ class EkoController extends Controller
                                     $record->sandt_user = $t_user->mobile_number;
                                     $record->created_by = $request->user;
                                     $record->sand_response = json_encode($transaction);
-                                    $record->date_time = Carbon::now()->format("d-m-Y h:i:s A");
+                                    $record->date_time = Carbon::now()->format("d-m-Y | h:i:s A");
                                     $record->save();
                                     if($record->save()){
                                         $transction_res = array("status"=>"success","t_id"=>$record->sandt_id,"message"=>$transaction['message']);
