@@ -207,7 +207,7 @@ class EkoController extends Controller
                                     $records->sand_amount = $transaction['data']['amount'];
                                     $records->sand_fees = $transaction['data']['totalfee'];
                                     $records->created_by = $request->user;
-                                    $records->sandt_user = $t_user->mobile_number;
+                                    $records->sandt_user = $request->transaction_user;
                                     $records->sand_response = json_encode($transaction);
                                     $records->date_time = Carbon::now()->format("d-m-Y | h:i:s A");
                                     $records->save();
@@ -228,7 +228,7 @@ class EkoController extends Controller
                                     $record->sand_account = $transaction['data']['account'];
                                     $record->sand_amount = $transaction['data']['amount'];
                                     $record->sand_fees = $transaction['data']['totalfee'];
-                                    $record->sandt_user = $t_user->mobile_number;
+                                    $record->sandt_user = $request->transaction_user;
                                     $record->created_by = $request->user;
                                     $record->sand_response = json_encode($transaction);
                                     $record->date_time = Carbon::now()->format("d-m-Y | h:i:s A");
