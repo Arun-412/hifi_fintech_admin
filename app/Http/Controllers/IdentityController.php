@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use App\Models\stoneseeds;
 use App\Models\sandstone;
+use App\Models\bank_list;
 
 class IdentityController extends Controller
 {
@@ -306,7 +307,7 @@ class IdentityController extends Controller
                             $bank_account = new stoneseeds;
                             $bank_account->account_code = "HFBA".Str::random(3)."VP0".Str::random(2);
                             $bank_account->bank_name = isset($Bank_Account_Verification['data']['bank']) ? $Bank_Account_Verification['data']['bank'] : $request->bank_name;
-                            $bank_account->ifsc_code = $request->bank_code;
+                            $bank_account->ifsc_code = $request->ifsc;
                             $bank_account->account_number = isset($Bank_Account_Verification['data']['account']) ? $Bank_Account_Verification['data']['account'] : $request->account_number;
                             $bank_account->account_holder_name = $Bank_Account_Verification['data']['recipient_name'];
                             $bank_account->verification_response = json_encode($Bank_Account_Verification);
@@ -331,7 +332,7 @@ class IdentityController extends Controller
                             $bank_account = new stoneseeds;
                             $bank_account->account_code = "HFBA".Str::random(2)."0VP0".Str::random(2);
                             $bank_account->bank_name = $request->bank_name;
-                            $bank_account->ifsc_code = $request->bank_code;
+                            $bank_account->ifsc_code = $request->ifsc;
                             $bank_account->account_number = $request->account_number;
                             $bank_account->account_holder_name = $Bank_Account_Verification['data']['recipient_name'];
                             $bank_account->verification_response = json_encode($Bank_Account_Verification);
