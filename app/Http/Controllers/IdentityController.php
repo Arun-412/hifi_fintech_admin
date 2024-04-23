@@ -10,7 +10,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use App\Models\stoneseeds;
 use App\Models\sandstone;
-use App\Models\bank_list;
 
 class IdentityController extends Controller
 {
