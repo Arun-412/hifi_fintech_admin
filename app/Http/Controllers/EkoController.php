@@ -206,6 +206,7 @@ class EkoController extends Controller
                                     $records->sand_account = $transaction['data']['account'];
                                     $records->sand_amount = $transaction['data']['amount'];
                                     $records->sand_fees = $transaction['data']['totalfee'];
+                                    $records->sandt_tcharge = $request->transaction_charge;
                                     $records->created_by = $request->user;
                                     $records->sandt_user = $request->transaction_user;
                                     $records->sand_response = json_encode($transaction);
@@ -228,6 +229,7 @@ class EkoController extends Controller
                                     $record->sand_account = $transaction['data']['account'];
                                     $record->sand_amount = $transaction['data']['amount'];
                                     $record->sand_fees = $transaction['data']['totalfee'];
+                                    $record->sandt_tcharge = $request->transaction_charge;
                                     $record->sandt_user = $request->transaction_user;
                                     $record->created_by = $request->user;
                                     $record->sand_response = json_encode($transaction);

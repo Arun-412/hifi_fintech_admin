@@ -17,6 +17,7 @@ class sand extends Model
         'sand_account',
         'sand_amount',
         'sand_fees',
+        'sandt_tcharge',
         'sandt_user',
         'created_by',
         'sand_response',
