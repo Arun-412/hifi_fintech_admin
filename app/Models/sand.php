@@ -10,6 +10,7 @@ class sand extends Model
     use HasFactory;
     protected $table = 'sands';
     protected $fillable = [
+        'sandt_Hid',
         'sandt_id',
         'sand_status',
         'sandt_mode',

@@ -198,6 +198,7 @@ class EkoController extends Controller
                             else if(env("EKO_MODE") == "LIVE"){
                                 if($transaction['data']['tx_status'] == 1){ // failed
                                     $records = new sand_log;
+                                    $records->sandt_Hid = $transaction['data']['client_ref_id'];
                                     $records->sandt_id = $transaction['data']['bank_ref_num'];
                                     $records->sand_status = $transaction['data']['txstatus_desc'];
                                     $records->bank_name = $account->bank_name;
@@ -221,6 +222,7 @@ class EkoController extends Controller
                                 }
                                 else if($transaction['data']['tx_status'] != 1){
                                     $record = new sand;
+                                    $record->sandt_Hid = $transaction['data']['client_ref_id'];
                                     $record->sandt_id = $transaction['data']['bank_ref_num'];
                                     $record->sand_name = $transaction['data']['recipient_name'];
                                     $record->sand_status = $transaction['data']['txstatus_desc'];
@@ -236,7 +238,7 @@ class EkoController extends Controller
                                     $record->date_time = Carbon::now()->format("d-m-Y | h:i:s A");
                                     $record->save();
                                     if($record->save()){
-                                        $transction_res = array("status"=>"success","t_id"=>$record->sandt_id,"message"=>$transaction['message']);
+                                        $transction_res = array("status"=>"success","t_id"=>$record->sandt_Hid,"message"=>$transaction['message']);
                                     }
                                     else{
                                         $transction_res = array("status"=>"failed","message"=>"Something went wrong from transaction records");
