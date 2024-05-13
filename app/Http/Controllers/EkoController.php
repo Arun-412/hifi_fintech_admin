@@ -171,6 +171,92 @@ class EkoController extends Controller
         }
     }
 
+    public function curl_get ($data) {
+        try{
+            $curl = curl_init();
+            $encodedKey = base64_encode($this->Authenticator_Key);
+            $secret_key_timestamp = (int)(round(microtime(true) * 1000));
+            $signature = hash_hmac('SHA256', $secret_key_timestamp, $encodedKey, true);
+            $secret_key = base64_encode($signature);
+            curl_setopt_array($curl, array(
+                CURLOPT_URL =>  $data['url'],
+                CURLOPT_SSL_VERIFYHOST => env("SSL_VERIFY"),
+                CURLOPT_SSL_VERIFYPEER => env("SSL_VERIFY"),
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_HEADER => false,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTPGET=> 1,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'GET',
+                CURLOPT_HTTPHEADER => array(
+                    "Cache-Control: no-cache",
+                    'Content-Type: application/x-www-form-urlencoded',
+                    'developer_key: '.$this->Developer_Key,
+                    'secret-key:'.$secret_key,
+                    'secret-key-timestamp:'.$secret_key_timestamp
+                    // "developer_key: becbbce45f79c6f5109f848acd540567",
+                    // "secret-key: MC6dKW278tBef+AuqL/5rW2K3WgOegF0ZHLW/FriZQw=",
+                    // "secret-key-timestamp: 1516705204593"
+                ),
+            ));
+            $responses = curl_exec($curl);
+            $err = curl_error($curl);
+            $response = 'Something went wrong from sending values';
+            if ($err) {
+                $response = $err;
+            }else{
+                $response = $responses;
+            }
+            curl_close($curl);
+            return json_decode($response,true);
+        }catch(\Throwable $e){
+            return $e->getmessage();
+        }        
+    }
+
+    public function payout_transaction_enquiry (Request $request) {
+        try{
+            if(empty($this->Base_URL)){
+                Artisan::call('config:clear');
+                return array("status"=>false,"message"=>"Try Again");
+            }
+            else{
+                // $request->tid = ;
+                if(sand::where(['sandt_Hid'=>"HFPYOT20240513080231"])->exists()){
+                    $record = sand::where(['sandt_Hid'=>"HFPYOT20240513080231"])->first();
+                    // return $record;
+                    $data = array(
+                        "url"=>$this->Onboarding_URL."transactions/client_ref_id:HFPYOT20240513080231?initiator_id=".$this->Initiator_ID
+                    );
+                    $transaction = $this->curl_get($data);
+                    // return $transaction;
+                    if($transaction['data']['tx_status']){
+                        $record->sandt_id = $transaction['data']['bank_ref_num'] != '' ? $transaction['data']['bank_ref_num'] : "";
+                        $record->sand_name = $transaction['data']['recipient_name'];
+                        $record->sand_status = $transaction['data']['txstatus_desc'];
+                        $record->update();
+                        if($record->update()){
+                            $transction = array("status"=>"Success","Transaction Updated");
+                        }
+                        else{
+                            $transction = array("status"=>"failed","Something went wrong in transaction updates");
+                        }
+                    }
+                }
+                else{
+                    $transction = array("status"=>"failed","Invalid Transaction ID");
+                }
+                return $transction;
+            }
+        }
+        catch(\Throwable $e){
+            return array("status"=>false,"message"=>$e->getmessage());
+        }
+    }
+
     public function payout_transaction(Request $request) {
         try{
             if(empty($this->Access_Key)){
