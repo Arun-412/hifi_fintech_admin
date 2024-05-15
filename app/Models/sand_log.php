@@ -25,7 +25,6 @@ class sand_log extends Model
         'updated_at'
     ];
     protected $hidden = [
-        'sand_id',
         'updated_at'
     ];
     protected $casts = [];

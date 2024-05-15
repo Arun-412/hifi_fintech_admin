@@ -219,37 +219,41 @@ class EkoController extends Controller
 
     public function payout_transaction_enquiry (Request $request) {
         try{
-            if(empty($this->Base_URL)){
-                Artisan::call('config:clear');
-                return array("status"=>false,"message"=>"Try Again");
-            }
-            else{
-                // $request->tid = ;
-                if(sand::where(['sandt_Hid'=>"HFPYOT20240513080231"])->exists()){
-                    $record = sand::where(['sandt_Hid'=>"HFPYOT20240513080231"])->first();
-                    // return $record;
-                    $data = array(
-                        "url"=>$this->Onboarding_URL."transactions/client_ref_id:HFPYOT20240513080231?initiator_id=".$this->Initiator_ID
-                    );
-                    $transaction = $this->curl_get($data);
-                    // return $transaction;
-                    if($transaction['data']['tx_status']){
-                        $record->sandt_id = $transaction['data']['bank_ref_num'] != '' ? $transaction['data']['bank_ref_num'] : "";
-                        $record->sand_name = $transaction['data']['recipient_name'];
-                        $record->sand_status = $transaction['data']['txstatus_desc'];
-                        $record->update();
-                        if($record->update()){
-                            $transction = array("status"=>"Success","Transaction Updated");
-                        }
-                        else{
-                            $transction = array("status"=>"failed","Something went wrong in transaction updates");
-                        }
-                    }
+            if($this->Access_Key == $request->token){
+                if(empty($this->Base_URL)){
+                    Artisan::call('config:clear');
+                    return array("status"=>false,"message"=>"Try Again");
                 }
                 else{
-                    $transction = array("status"=>"failed","Invalid Transaction ID");
+                    if(sand::where(['sandt_Hid'=>$request->transaction_id])->exists()){
+                        $record = sand::where(['sandt_Hid'=>$request->transaction_id])->first();
+                        $data = array(
+                            "url"=>$this->Onboarding_URL."transactions/client_ref_id:HFPYOT20240513080231?initiator_id=".$this->Initiator_ID
+                        );
+                        $transaction = $this->curl_get($data);
+                        if($transaction['data']['tx_status']){
+                            $record->sandt_id = $transaction['data']['bank_ref_num'] != '' ? $transaction['data']['bank_ref_num'] : $record->sandt_id;
+                            $record->sand_name = $transaction['data']['recipient_name'];
+                            $record->sand_status = $transaction['data']['txstatus_desc'];
+                            $raw = [];
+                            $raw[date('YmdHis')] = $transaction;
+                            $raw['old'] =json_decode($record->sand_response,true);
+                            $record->sand_response = $raw;
+                            if($record->update()){
+                                $transction = array("status"=>"Success","Transaction Updated");
+                            }
+                            else{
+                                $transction = array("status"=>"failed","Something went wrong in transaction updates");
+                            }
+                        }
+                    }
+                    else{
+                        $transction = array("status"=>"failed","Invalid Transaction ID");
+                    }
+                    return $transction;
                 }
-                return $transction;
+            }else{
+                return array("status"=>false,"message"=>"You are noted! Do not try again");
             }
         }
         catch(\Throwable $e){
