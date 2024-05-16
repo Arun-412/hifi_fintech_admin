@@ -198,11 +198,29 @@ class IdentityController extends Controller
                 );
                 $data = array(
                     "url"=>$this->Base_URL.'customers/mobile_number:'.$request->mobile,
-                    "data"=>"initiator_id=".$this->Initiator_ID."&name=Arun&user_code=".$this->admin_code."&dob=1998-12-04&residence_address=".json_encode($address)."&skip_verification=true"
+                    "data"=>"initiator_id=".$this->Initiator_ID."&name=Customer&user_code=".$this->admin_code."&dob=1998-12-04&residence_address=".json_encode($address)."&skip_verification=false"
                 );
                 $customer = $this->curl_put($data);
                 if($customer['message'] == "Wallet opened successfully."){
                     return array("status"=>true,"message"=>$customer['message']);
+                }
+                else if($customer['message'] == "OTP Required for customer verification"){
+                    $customer = $this->curl_put($data);
+                    if($customer['message'] == "Wallet opened successfully."){
+                        return array("status"=>true,"message"=>$customer['message']);
+                    }
+                    else if($customer['message'] == "OTP Required for customer verification"){
+                        return array("status"=>false,"message"=>"Too many attempts, Try again later");
+                    }
+                    else if($customer['message'] == "OTP sent. Proceed with verification."){
+                        return array("status"=>true,"message"=>"OTP Sent","mobile"=>$request->mobile);
+                    }
+                    else{
+                        return array("status"=>false,"message"=>$customer['message']);
+                    }
+                }
+                else if($customer['message'] == "OTP sent. Proceed with verification."){
+                    return array("status"=>true,"message"=>"OTP Sent","mobile"=>$request->mobile);
                 }
                 else{
                     return array("status"=>false,"message"=>$customer['message']);
@@ -222,11 +240,18 @@ class IdentityController extends Controller
             }
             else{
                 $data = array(
-                    "url"=>$this->Base_URL.'customers/verification/otp:123432',
-                    "data"=>'initiator_id='.$this->Initiator_ID.'&id_type=mobile_number&id=6383224535&otp_ref_id=d3e00033-ebd1-5492-a631-53f0dbf00d69&user_code=20810200&pipe=9'
+                    "url"=>$this->Base_URL.'customers/verification/otp:'.$_GET['otp'],
+                    "data"=>'initiator_id='.$this->Initiator_ID.'&id_type=mobile_number&id='.$_GET['mobile'].'&otp_ref_id=d3e00033-ebd1-5492-a631-53f0dbf00d69&user_code=20810200&pipe=9'
                 );
+                // return $data;
                 $otp_verify = $this->curl_put($data);
-                return $otp_verify;
+                // return $otp_verify;
+                if($otp_verify['message'] == "Wallet opened successfully."){
+                    return array("status"=>true,"message"=>$otp_verify['message']);
+                }
+                else{
+                    return array("status"=>false,"message"=>$otp_verify['message']);
+                }
             }
         }
         catch(\Throwable $e){
@@ -242,7 +267,7 @@ class IdentityController extends Controller
             }
             else{
                 $data = array(
-                    "url"=>$this->Base_URL.'customers/mobile_number:9952199550?customer_id_type=mobile_number&customer_id=9952199550&initiator_id='.$this->Initiator_ID.'&user_code='.$this->admin_code,
+                    "url"=>$this->Base_URL.'customers/mobile_number:8973694845?customer_id_type=mobile_number&customer_id=9952199550&initiator_id='.$this->Initiator_ID.'&user_code='.$this->admin_code,
                     
                     // "url"=>$this->Base_URL.'customers/mobile_number:6383224535&initiator_id=9962981729&user_code=20810200',
                     // "data"=>'initiator_id=9962981729&user_code=20810200'
