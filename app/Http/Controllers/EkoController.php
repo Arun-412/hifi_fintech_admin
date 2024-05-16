@@ -228,7 +228,7 @@ class EkoController extends Controller
                     if(sand::where(['sandt_Hid'=>$request->transaction_id])->exists()){
                         $record = sand::where(['sandt_Hid'=>$request->transaction_id])->first();
                         $data = array(
-                            "url"=>$this->Onboarding_URL."transactions/client_ref_id:HFPYOT20240513080231?initiator_id=".$this->Initiator_ID
+                            "url"=>$this->Onboarding_URL."transactions/client_ref_id:".$request->transaction_id."?initiator_id=".$this->Initiator_ID
                         );
                         $transaction = $this->curl_get($data);
                         if($transaction['data']['tx_status']){
